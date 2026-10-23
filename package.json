@@ -1,0 +1,118 @@
+{
+  "name": "@cogine-ai/openclaw-lark",
+  "version": "2026.10.8-cogine.1",
+  "description": "Lark/Feishu channel plugin for OpenClaw, maintained by Cogine",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist/",
+    "skills/",
+    "secret-contract-api.js",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "CHANGELOG.md"
+  ],
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=24.22.1 <25 || >=26.12.1"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ index.ts secret-contract-api.ts",
+    "lint:fix": "eslint src/ index.ts secret-contract-api.ts --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts",
+    "prepack": "pnpm build",
+    "check:pack": "node scripts/check-package.mjs"
+  },
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.64.0",
+    "@sinclair/typebox": "0.34.49",
+    "image-size": "^2.0.2",
+    "undici-types": "^8.1.0",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.10.6"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.2.3",
+    "@types/qrcode": "^1.5.5",
+    "eslint": "^9.39.3",
+    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-n": "^17.24.0",
+    "execa": "^9.6.0",
+    "fs-extra": "^11.3.2",
+    "globals": "^16.2.0",
+    "minimist": "^1.2.8",
+    "openclaw": "2026.10.6",
+    "prettier": "^3.8.1",
+    "tsdown": "^0.21.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.32.1",
+    "vitest": "^4.1.1"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.mjs"
+    ],
+    "channel": {
+      "id": "openclaw-lark",
+      "label": "Feishu",
+      "selectionLabel": "Lark/Feishu (飞书)",
+      "docsPath": "/channels/feishu",
+      "docsLabel": "feishu",
+      "blurb": "飞书/Lark enterprise messaging with doc/wiki/drive/task/calendar tools.",
+      "aliases": [
+        "lark"
+      ],
+      "order": 35,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@cogine-ai/openclaw-lark",
+      "localPath": "extensions/feishu",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2026.10.6"
+    },
+    "compat": {
+      "pluginApi": ">=2026.10.6"
+    },
+    "build": {
+      "openclawVersion": "2026.10.6"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cogine-ai/openclaw-lark.git"
+  },
+  "homepage": "https://github.com/cogine-ai/openclaw-lark#readme",
+  "bugs": {
+    "url": "https://github.com/cogine-ai/openclaw-lark/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
