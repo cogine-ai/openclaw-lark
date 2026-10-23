@@ -31,7 +31,7 @@ Publishing is an explicit release action; preparing this repository does not exe
 
 ## Later publication with GitHub OIDC
 
-Configure a trusted publisher in the npm package settings:
+First ensure GitHub Actions is allowed for this repository under the GitHub organization policy. Then configure a trusted publisher in the npm package settings:
 
 - GitHub owner: `cogine-ai`
 - Repository: `openclaw-lark`

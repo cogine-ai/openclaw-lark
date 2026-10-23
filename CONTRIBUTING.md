@@ -11,3 +11,5 @@ The plugin ID and Feishu configuration keys are intentionally stable. Treat chan
 Do not commit OpenClaw state, robot credentials, OAuth/device codes, user/chat identifiers, private message content or local diagnostic logs. Automated tests use synthetic identities and mocked network/token storage.
 
 Open a pull request for normal maintenance. Document the trigger, resulting behavior and validation; update CHANGELOG.md and compatibility notes when needed. See docs/releasing.md for public npm releases.
+
+The CI workflow supports manual runs as well as pushes and pull requests. Both CI and the publishing workflow require GitHub Actions to be permitted for this repository. If organization policy disables Actions, a GitHub administrator must allow this repository before remote workflows can run; the documented local validation and manual publishing commands remain available.
