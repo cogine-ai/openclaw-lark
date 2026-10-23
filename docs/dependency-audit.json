@@ -1,0 +1,467 @@
+{
+  "date": "2026-10-24",
+  "scope": "production dependencies only",
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 33,
+      "high": 21,
+      "critical": 1
+    },
+    "dependencies": 54,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 54
+  },
+  "advisories": [
+    {
+      "module_name": "follow-redirects",
+      "severity": "moderate",
+      "title": "follow-redirects leaks Custom Authentication Headers to Cross-Domain Redirect Targets",
+      "vulnerable_versions": "<=1.15.11",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF",
+      "vulnerable_versions": ">=1.0.0 <1.15.0",
+      "patched_versions": ">=1.15.0",
+      "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "critical",
+      "title": "Arbitrary code execution in protobufjs",
+      "vulnerable_versions": "<7.5.5",
+      "patched_versions": ">=7.5.5",
+      "url": "https://github.com/advisories/GHSA-xq3m-2v4x-88gg"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver`",
+      "vulnerable_versions": ">=1.0.0 <1.15.2",
+      "patched_versions": ">=1.15.2",
+      "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
+    },
+    {
+      "module_name": "axios",
+      "severity": "low",
+      "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-445q-vr5w-6q77"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: no_proxy bypass via IP alias allows SSRF",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Header Injection via Prototype Pollution",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
+      "vulnerable_versions": ">=1.0.0 <1.15.2",
+      "patched_versions": ">=1.15.2",
+      "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Code injection through bytes field defaults in generated toObject code",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-66ff-xgx4-vchm"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "moderate",
+      "title": "protobuf.js: Denial of service from crafted field names in generated code",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-2pr8-phx7-x9h3"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "moderate",
+      "title": "protobuf.js: Prototype injection in generated message constructors",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-fx83-v9x8-x52w"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Code generation gadget after prototype pollution",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-75px-5xx7-5xc7"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Process-wide denial of service through unsafe option paths",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-jvwf-75h9-cwgg"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "high",
+      "title": "protobuf.js: Denial of service through unbounded protobuf recursion",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-685m-2w69-288q"
+    },
+    {
+      "module_name": "@protobufjs/utf8",
+      "severity": "moderate",
+      "title": "protobufjs has overlong UTF-8 decoding",
+      "vulnerable_versions": "<=1.1.0",
+      "patched_versions": ">=1.1.1",
+      "url": "https://github.com/advisories/GHSA-q6x5-8v7m-xcrf"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs has overlong UTF-8 decoding",
+      "vulnerable_versions": "<=7.5.5",
+      "patched_versions": ">=7.5.6",
+      "url": "https://github.com/advisories/GHSA-q6x5-8v7m-xcrf"
+    },
+    {
+      "module_name": "ws",
+      "severity": "moderate",
+      "title": "ws: Uninitialized memory disclosure",
+      "vulnerable_versions": ">=8.0.0 <8.20.1",
+      "patched_versions": ">=8.20.1",
+      "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs: Denial of Service via unbounded recursive JSON descriptor expansion",
+      "vulnerable_versions": "<=7.5.7",
+      "patched_versions": ">=7.5.8",
+      "url": "https://github.com/advisories/GHSA-jggg-4jg4-v7c6"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios has Unrestricted Cloud Metadata Exfiltration via Header Injection Chain",
+      "vulnerable_versions": ">=1.0.0 <1.15.0",
+      "patched_versions": ">=1.15.0",
+      "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
+    },
+    {
+      "module_name": "qs",
+      "severity": "moderate",
+      "title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
+      "vulnerable_versions": ">=6.11.1 <=6.15.1",
+      "patched_versions": ">=6.15.2",
+      "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
+      "vulnerable_versions": ">=1.0.0 <1.15.1",
+      "patched_versions": ">=1.15.1",
+      "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection",
+      "vulnerable_versions": ">=1.0.0 <1.16.0",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Allocation of Resources Without Limits or Throttling in Axios",
+      "vulnerable_versions": ">=1.7.0 <1.16.0",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
+      "vulnerable_versions": ">=1.0.0 <1.16.0",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
+      "vulnerable_versions": ">=1.0.0 <1.16.0",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
+      "vulnerable_versions": ">=1.0.0 <1.15.2",
+      "patched_versions": ">=1.15.2",
+      "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
+      "vulnerable_versions": ">=1.0.0 <1.16.0",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
+      "vulnerable_versions": ">=1.0.0 <1.16.0",
+      "patched_versions": ">=1.16.0",
+      "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
+    },
+    {
+      "module_name": "form-data",
+      "severity": "high",
+      "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+      "vulnerable_versions": ">=4.0.0 <4.0.6",
+      "patched_versions": ">=4.0.6",
+      "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
+    },
+    {
+      "module_name": "ws",
+      "severity": "high",
+      "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+      "vulnerable_versions": ">=8.0.0 <8.21.0",
+      "patched_versions": ">=8.21.0",
+      "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "high",
+      "title": "protobufjs: Denial of service through unbounded Any expansion during JSON conversion",
+      "vulnerable_versions": "<=7.6.0",
+      "patched_versions": ">=7.6.1",
+      "url": "https://github.com/advisories/GHSA-wcpc-wj8m-hjx6"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs : Schema-derived names can shadow runtime-significant properties",
+      "vulnerable_versions": "<=7.6.2",
+      "patched_versions": ">=7.6.3",
+      "url": "https://github.com/advisories/GHSA-f38q-mgvj-vph7"
+    },
+    {
+      "module_name": "protobufjs",
+      "severity": "moderate",
+      "title": "protobufjs: Denial of Service via infinite loop in .proto option parsing",
+      "vulnerable_versions": ">=7.5.0 <=7.6.4",
+      "patched_versions": ">=7.6.5",
+      "url": "https://github.com/advisories/GHSA-j3f2-48v5-ccww"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Prototype pollution gadgets can alter axios request construction",
+      "vulnerable_versions": ">=1.0.0 <1.18.0",
+      "patched_versions": ">=1.18.0",
+      "url": "https://github.com/advisories/GHSA-mmx7-hfxf-jppx"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Deep formToJSON Key Recursion Can Cause Denial of Service",
+      "vulnerable_versions": ">=1.0.0 <1.18.0",
+      "patched_versions": ">=1.18.0",
+      "url": "https://github.com/advisories/GHSA-pmv8-rq9r-6j72"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: HTTP/2 streamed uploads bypass `maxBodyLength`",
+      "vulnerable_versions": ">=1.13.0 <1.18.0",
+      "patched_versions": ">=1.18.0",
+      "url": "https://github.com/advisories/GHSA-mwf2-3pr3-8698"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Nested axios option objects can consume polluted prototype values",
+      "vulnerable_versions": ">=1.0.0 <1.18.0",
+      "patched_versions": ">=1.18.0",
+      "url": "https://github.com/advisories/GHSA-7q8q-rj6j-mhjq"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Fetch adapter `ReadableStream` uploads bypass `maxBodyLength`",
+      "vulnerable_versions": ">=1.7.0 <1.18.0",
+      "patched_versions": ">=1.18.0",
+      "url": "https://github.com/advisories/GHSA-jqh4-m9w3-8hp9"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Excessive recursion in formDataToJSON can cause denial of service",
+      "vulnerable_versions": ">=1.0.0 <1.18.0",
+      "patched_versions": ">=1.18.0",
+      "url": "https://github.com/advisories/GHSA-42h9-826w-cgv3"
+    },
+    {
+      "module_name": "qs",
+      "severity": "moderate",
+      "title": "qs array-limit bypass via bracket-key comma parsing",
+      "vulnerable_versions": ">=6.14.2 <=6.15.3",
+      "patched_versions": ">=6.16.0",
+      "url": "https://github.com/advisories/GHSA-x5fp-wj9c-mxmx"
+    },
+    {
+      "module_name": "qs",
+      "severity": "moderate",
+      "title": "qs: Denial of Service via Attacker Controlled isBuffer",
+      "vulnerable_versions": ">=2.2.5 <6.16.0",
+      "patched_versions": ">=6.16.0",
+      "url": "https://github.com/advisories/GHSA-4mjr-xmp4-gh2g"
+    },
+    {
+      "module_name": "image-size",
+      "severity": "high",
+      "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+      "vulnerable_versions": ">=1.2.0 <=2.0.2",
+      "patched_versions": ">=2.0.3",
+      "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq"
+    },
+    {
+      "module_name": "image-size",
+      "severity": "high",
+      "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+      "vulnerable_versions": ">=0.6.3 <=2.0.2",
+      "patched_versions": ">=2.0.3",
+      "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Prototype pollution gadget in fetch adapter can alter outbound requests",
+      "vulnerable_versions": ">=1.7.0 <1.20.0",
+      "patched_versions": ">=1.20.0",
+      "url": "https://github.com/advisories/GHSA-vh66-26gq-q6x8"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Prototype-Pollution Gadget in the Default Instance Allows Inherited Object.prototype.method to Override HTTP Method",
+      "vulnerable_versions": ">=1.0.0 <1.20.0",
+      "patched_versions": ">=1.20.0",
+      "url": "https://github.com/advisories/GHSA-9fr6-4gfg-395g"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: HTTP/2 adapter bypasses configured DNS lookup and proxy controls",
+      "vulnerable_versions": ">=1.13.0 <1.20.0",
+      "patched_versions": ">=1.20.0",
+      "url": "https://github.com/advisories/GHSA-3pq3-5fj3-cg6v"
+    },
+    {
+      "module_name": "axios",
+      "severity": "high",
+      "title": "Axios: Denial of Service via Unhandled 'error' Event in HTTP/2 ClientHttp2Session Initialization",
+      "vulnerable_versions": ">=1.13.0 <1.20.0",
+      "patched_versions": ">=1.20.0",
+      "url": "https://github.com/advisories/GHSA-542g-h47m-68v8"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Header Injection via Inherited headers After Minimal Interceptor",
+      "vulnerable_versions": ">=1.0.0 <1.20.0",
+      "patched_versions": ">=1.20.0",
+      "url": "https://github.com/advisories/GHSA-j8rh-479h-cp32"
+    },
+    {
+      "module_name": "axios",
+      "severity": "moderate",
+      "title": "Axios: Fetch Adapter Header Injection via Inherited FormData getHeaders",
+      "vulnerable_versions": ">=1.12.0 <1.20.0",
+      "patched_versions": ">=1.20.0",
+      "url": "https://github.com/advisories/GHSA-4hqw-qxg8-jxx2"
+    }
+  ]
+}

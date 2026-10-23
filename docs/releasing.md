@@ -7,7 +7,7 @@ Current source version: `2026.10.8-cogine.1`, first publication pending. The pre
 ## Validate a release
 
 1. Use Node 24.22.1 / pnpm 10.32.1. Update package version and changelog; commit the matching lockfile if dependencies change.
-2. Run frozen install, typecheck, lint, tests, build and `pnpm check:pack`.
+2. Run frozen install, typecheck, lint, tests, build and `pnpm check:pack`. Review [dependency status](dependency-status.md), resolve known production dependency advisories and pass `pnpm audit --prod --audit-level high` before publishing.
 3. Pack the artifact, inspect its file list, and perform a single-machine pilot against the exact artifact. Verify native streaming and a genuinely new incremental read-only OAuth permission; after authorization do not send “continue”. Preserve a rollback package and state backup.
 4. Review the diff and merge it; create a Git tag `v<package-version>` on the reviewed commit. Tags alone do not publish: the workflow is manual.
 
@@ -22,6 +22,7 @@ pnpm lint
 pnpm test
 pnpm build
 pnpm check:pack
+pnpm audit --prod --audit-level high
 # Build and publish the same inspected tarball; path depends on package version.
 pnpm pack
 npm publish ./cogine-ai-openclaw-lark-2026.10.8-cogine.1.tgz --access public --tag next

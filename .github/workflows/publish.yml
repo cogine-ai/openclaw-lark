@@ -51,6 +51,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm check:pack
+      - run: pnpm audit --prod --audit-level high
       - name: Pack and publish reviewed artifact
         run: |
           mkdir release-artifact
