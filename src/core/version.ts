@@ -31,7 +31,7 @@ export function getPluginVersion(): string {
           name?: string;
           version?: string;
         };
-        if (pkg.name !== '@cogine-ai/openclaw-lark' || !pkg.version) continue;
+        if (pkg.name !== '@cogineai/openclaw-lark' || !pkg.version) continue;
         cachedVersion = pkg.version;
         return cachedVersion;
       } catch {

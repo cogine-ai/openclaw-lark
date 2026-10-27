@@ -6,7 +6,7 @@ const manifest = JSON.parse(readFileSync('openclaw.plugin.json', 'utf8'));
 const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const [pack] = JSON.parse(execFileSync(command, ['pack', '--dry-run', '--ignore-scripts', '--json'], { encoding: 'utf8' }));
 const files = pack.files.map(({ path }) => path);
-assert.equal(pkg.name, '@cogine-ai/openclaw-lark');
+assert.equal(pkg.name, '@cogineai/openclaw-lark');
 assert.equal(pkg.publishConfig.access, 'public');
 assert.equal(pkg.openclaw.install.npmSpec, pkg.name);
 assert.equal(manifest.id, 'openclaw-lark');

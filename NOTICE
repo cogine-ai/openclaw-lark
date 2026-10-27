@@ -1,8 +1,8 @@
 OpenClaw Lark — Cogine maintenance fork
 
 Based on larksuite/openclaw-lark (MIT), via
-hotwvpyym/openclaw-lark-compat v2026.10.8,
-commit 10523e4362e724a115a6de5e214243a58b22b541.
+hotwvpyym/openclaw-lark-compat v2026.10.10,
+commit 1e8816300787e250ef8bd0b9716ba93dcd19de46.
 
 Original license and copyright notices are retained in LICENSE and source files.
 Additional maintenance changes: Copyright (c) 2026 Cogine contributors, MIT.

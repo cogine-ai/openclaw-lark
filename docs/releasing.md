@@ -1,8 +1,8 @@
 # Public npm releases
 
-Package: `@cogine-ai/openclaw-lark`. The scope is a package-name namespace, not an access restriction. `publishConfig.access=public` makes the package installable by everyone. GitHub repository ownership and npm scope permissions are separate: a publisher must have npm access to the cogine-ai scope.
+Package: `@cogineai/openclaw-lark`. The cogineai scope is the npm namespace; the GitHub owner remains cogine-ai. Public access is not restricted to organization members. `publishConfig.access=public` makes the package installable by everyone. GitHub repository ownership and npm scope permissions are separate: a publisher must have npm access to the cogineai scope.
 
-Current source version: `2026.10.8-cogine.1`, first publication pending. The preview tag is `next`; do not advertise the npm install command as available before registry publication.
+Current source version: `2026.10.10-cogine.1`, preview publication through the `next` tag. The preview tag is `next`; do not advertise the npm install command as available before registry publication.
 
 ## Validate a release
 
@@ -13,7 +13,7 @@ Current source version: `2026.10.8-cogine.1`, first publication pending. The pre
 
 ## First publication
 
-An npm publisher with permission for the `cogine-ai` namespace must authenticate locally (`npm login`, with the required 2FA). Do not put credentials in the repository or send them in chat.
+An npm publisher with permission for the `cogineai` namespace must authenticate locally (`npm login`, with the required 2FA). Do not put credentials in the repository or send them in chat.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -25,7 +25,7 @@ pnpm check:pack
 pnpm audit --prod --audit-level high
 # Build and publish the same inspected tarball; path depends on package version.
 pnpm pack
-npm publish ./cogine-ai-openclaw-lark-2026.10.8-cogine.1.tgz --access public --tag next
+npm publish ./cogineai-openclaw-lark-2026.10.10-cogine.1.tgz --access public --tag next
 ```
 
 Publishing is an explicit release action; preparing this repository does not execute it. Verify the registry version and test installation after publishing.

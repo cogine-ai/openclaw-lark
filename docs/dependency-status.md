@@ -1,24 +1,13 @@
-# Dependency audit status — 2026-10-24
+# Dependency audit status — 2026-10-28
 
-The imported dependency graph has unresolved published advisories. This preview is not yet published to npm. This report records registry metadata, not a validated exploit against a plugin feature.
+The preview's production dependency graph now has **0 critical, high, moderate or low advisories**. A separate fresh npm consumer, installing the new package manifest without this repository's pnpm lockfile, also reports zero advisories. Neither check relies on a consumer inheriting our root overrides; none are needed for runtime dependencies.
 
-GitHub initially reported 130 alerts for the complete dependency graph, including development dependencies. Separately, `pnpm audit --prod --json` reported 56 advisory entries: 1 critical, 21 high, 33 moderate and 1 low. Multiple entries can affect the same package; these are not counts of independent exploitable plugin bugs.
+Runtime minimums were raised to Lark SDK 1.76.0, image-size 2.0.4 and zod 4.6.7. The production lockfile was refreshed, including axios, protobufjs, ws, qs, follow-redirects, form-data and protobuf UTF-8 handling. Fresh consumer resolved versions and both audit metadata sets are recorded in [dependency-audit.json](dependency-audit.json).
 
-| Dependency | Advisory entries | Registry severity |
-|---|---:|---|
-| `follow-redirects` | 1 | 1 moderate |
-| `axios` | 34 | 12 high, 21 moderate, 1 low |
-| `protobufjs` | 12 | 1 critical, 5 high, 6 moderate |
-| `@protobufjs/utf8` | 1 | 1 moderate |
-| `ws` | 2 | 1 high, 1 moderate |
-| `qs` | 3 | 3 moderate |
-| `form-data` | 1 | 1 high |
-| `image-size` | 2 | 2 high |
+Development tooling was refreshed within its existing major versions. Vite 8.3.5 is an explicit development dependency so the test runner does not reuse the old affected version. The complete development graph still reports **2 high and 2 moderate** advisories, all through the exact `openclaw@2026.10.6` development fixture (`zod` and `undici`). Core 10.6 is intentionally pinned to reproduce the original compatibility boundary. These development dependencies are excluded from the plugin archive and consumer runtime install.
 
-Most findings enter through `@larksuiteoapi/node-sdk`; `image-size` is a direct dependency. Passing functional tests does not resolve advisories. Review, update and revalidate production dependencies before the first public npm release. The publishing workflow runs `pnpm audit --prod --audit-level high`; the current known high/critical findings block publication through that workflow.
+The production audit covers this plugin's own runtime dependencies, not the user's separately installed OpenClaw host. A zero plugin audit does not assert that the host or entire machine is free of vulnerabilities. Host upgrades follow their own validation and backup requirements; this release does not upgrade the core.
 
-Reproduce with `pnpm install --frozen-lockfile`, then `pnpm audit --prod`.
+Reproduce: `pnpm install --frozen-lockfile`, `pnpm audit --prod`, then `pnpm audit` to inspect the separate development graph. Publishing checks production advisories and stops on high/critical entries. Registry advisories may change after this dated check.
 
-Review upstream releases and fixed ranges before updating dependencies. Do not force unreviewed major upgrades or assume a lockfile-only fix protects npm consumers: published consumers resolve manifest dependencies independently, so required runtime dependency bounds need review too.
-
-Examples: [protobufjs arbitrary code execution](https://github.com/advisories/GHSA-xq3m-2v4x-88gg), [image-size parser denial of service](https://github.com/advisories/GHSA-5p2g-fcmc-qvqq). Full initial registry entries are in [dependency-audit.json](dependency-audit.json).
+The initial imported October 24 report is retained as [historical evidence](dependency-audit-2026-10-24.json). Advisory metadata is not a validated exploit against a plugin feature.

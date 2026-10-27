@@ -4,7 +4,7 @@ Use Node 24.22.1 and pnpm 10.32.1 (packageManager is pinned). Install with `pnpm
 
 Keep compatibility changes small and traceable to an upstream API or a reproducible failure. Change TypeScript source, not generated dist bundles. Add regression coverage at the actual failing boundary, then run typecheck, lint, tests, build and package checks.
 
-Upstream source baseline: hotwvpyym/openclaw-lark-compat tag v2026.10.8, commit 10523e4362e724a115a6de5e214243a58b22b541. Track both that fork and larksuite/openclaw-lark. Import selected upstream changes on a branch; inspect the diff, rerun regressions and perform a pilot before release. Avoid wholesale replacement of the OAuth lifecycle or tool contracts fixes.
+Upstream source baseline: hotwvpyym/openclaw-lark-compat tag v2026.10.10, commit 1e8816300787e250ef8bd0b9716ba93dcd19de46. Track both that fork and larksuite/openclaw-lark. Import selected upstream changes on a branch; inspect the diff, rerun regressions and perform a pilot before release. Avoid wholesale replacement of the OAuth lifecycle or tool contracts fixes.
 
 The plugin ID and Feishu configuration keys are intentionally stable. Treat changes to authorization ownership, scopes, synthetic message identity and routing as behavior changes requiring review. Do not remove cancellation checks to fix an aborted continuation.
 

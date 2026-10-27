@@ -5,8 +5,8 @@
 这是 Cogine 维护的独立分支，采用 MIT 许可证，任何人都可以安装、使用和贡献；并非飞书官方发行版。
 
 - GitHub：<https://github.com/cogine-ai/openclaw-lark>
-- npm 包名：`@cogine-ai/openclaw-lark`
-- 当前源码版本：`2026.10.8-cogine.1`（预发布；首次 npm 发布尚未执行）
+- npm 包名：`@cogineai/openclaw-lark`
+- 当前源码版本：`2026.10.10-cogine.1`（预览版，使用 `next` 标签）
 - 目标核心：OpenClaw `2026.10.6`；Node.js `24.22.1`（其他满足核心要求的版本需另行验收）
 
 ## 本分支的改动
@@ -19,7 +19,13 @@
 
 ## 安装
 
-**npm 首次发布前**，请从源码构建本地包：
+npm 预览包使用 `next` 标签，任何用户都可以安装：
+
+```sh
+openclaw plugins install @cogineai/openclaw-lark@next
+```
+
+也可以从源码构建本地包：
 
 ```sh
 git clone https://github.com/cogine-ai/openclaw-lark.git
@@ -29,16 +35,10 @@ pnpm install --frozen-lockfile
 pnpm build
 pnpm pack
 # 使用生成的 .tgz 的绝对路径
-openclaw plugins install npm-pack:/absolute/path/to/cogine-ai-openclaw-lark-2026.10.8-cogine.1.tgz
+openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.10.10-cogine.1.tgz
 ```
 
-**发布到 npm 后**，任何用户都可以安装，无须加入 Cogine：
-
-```sh
-openclaw plugins install @cogine-ai/openclaw-lark@next
-```
-
-首次预发布使用 `next` 标签；稳定发布后再提供默认安装命令。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
+预览版本使用 `next` 标签；稳定发布后再提供默认安装命令。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
 
 ### 从其他 Lark 包迁移
 
@@ -70,10 +70,10 @@ openclaw plugins install @cogine-ai/openclaw-lark@next
 
 ## 验证范围与已知限制
 
-- 首次 npm 发布前需处理继承依赖的安全告警；生产依赖审计仍有 1 项 critical、21 项 high，详情和证据边界见 [依赖审计状态](docs/dependency-status.md)。发布工作流会检查这些运行依赖。
+- 运行依赖已更新，生产依赖审计与全新消费者安装结果见 [依赖审计状态](docs/dependency-status.md)。发布流程仍检查运行依赖；固定核心的开发测试依赖另行列出。
 
-- macOS + OpenClaw 2026.10.6 的本机试点已通过收发、原生流式输出及新增只读授权后自动续跑；源码仓库版另有自动回归与打包检查，不将试点安装包直接当作源码构建的人工验收。
-- 自动测试覆盖成功授权、过期、授权身份不匹配、关闭取消和后台任务生命周期。
+- 目标验收组合为 macOS + OpenClaw 2026.10.6；每个发布包的自动及本机真实验收证据见 [验收记录](docs/acceptance-2026.10.10-cogine.1.md)，不把旧试点包的结果当作新包验收。
+- 自动测试覆盖成功、过期、身份不匹配，以及身份校验、凭据写入、卡片更新、完成回调期间的关闭/重发；旧流程不能覆盖新令牌或触发过期续跑。
 - Windows / Linux 的真实飞书连接、所有办公工具的写操作尚未逐项验收。升级其他机器前先小范围验证。
 - 继承的任务清单权限映射可能要求额外写权限；诊断命令对 SecretRef 的处理仍有已知局限。这两项未在此补丁中修复。
 - 从旧核心降级不能只换二进制；升级涉及数据库迁移时，需要还原配套的整套备份。
@@ -94,6 +94,6 @@ pnpm check:pack
 ## 来源与许可证
 
 - [飞书官方源码](https://github.com/larksuite/openclaw-lark)
-- [社区兼容版 v2026.10.8](https://github.com/hotwvpyym/openclaw-lark-compat/tree/v2026.10.8)
+- [社区兼容版 v2026.10.10](https://github.com/hotwvpyym/openclaw-lark-compat/tree/v2026.10.10)
 
 保留原 [MIT 许可证](LICENSE) 和 [来源说明](NOTICE)。历史社区更新记录见 [UPSTREAM_CHANGELOG.md](UPSTREAM_CHANGELOG.md)。
