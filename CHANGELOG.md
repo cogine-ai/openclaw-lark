@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.10.10-cogine.1 — preview
+
+- Sync community v2026.10.10 (1e8816300787e250ef8bd0b9716ba93dcd19de46), including command owner authorization, channel/conversation separation, session-store fallback and skill guidance fixes.
+- Use the public npm name @cogineai/openclaw-lark; retain plugin ID openclaw-lark and channel feishu.
+- Cancel stale authorization completion after asynchronous identity/card/callback stages, serialize same-user credential writes, and preserve card sequences on reuse.
+- Add deterministic shutdown/replacement regressions covering the real authorization and synthetic-message path.
+- Raise runtime dependency minimums and refresh the production graph; audit both the locked project and an independent consumer without our lockfile.
+
+
 ## 2026.10.8-cogine.1 — unreleased
 
 - Import the TypeScript source of community compatibility build v2026.10.8 (10523e4362e724a115a6de5e214243a58b22b541).

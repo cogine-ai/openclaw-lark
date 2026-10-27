@@ -86,6 +86,31 @@ interface PendingFlow {
 }
 
 const pendingFlows = new Map<string, PendingFlow>();
+// Keep completion callbacks cancellable after their pending card is released.
+// In particular, onboarding may start a fresh batch from onAuthComplete.
+const activeFlows = new Map<string, PendingFlow>();
+const tokenWrites = new Map<string, Promise<void>>();
+
+async function persistCurrentToken(flowKey: string, token: StoredUAToken, isCurrent: () => boolean): Promise<boolean> {
+  // A platform credential write already in progress cannot be aborted. Order
+  // writes for this app/user so an older slow write cannot overwrite a newer UAT.
+  const previous = tokenWrites.get(flowKey) ?? Promise.resolve();
+  let saved = false;
+  const write = previous
+    .catch(() => undefined)
+    .then(async () => {
+      if (!isCurrent()) return;
+      await setStoredToken(token);
+      saved = true;
+    });
+  tokenWrites.set(flowKey, write);
+  try {
+    await write;
+    return saved;
+  } finally {
+    if (tokenWrites.get(flowKey) === write) tokenWrites.delete(flowKey);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Identity verification after Device Flow
@@ -101,6 +126,7 @@ async function verifyTokenIdentity(
   brand: string,
   accessToken: string,
   expectedOpenId: string,
+  signal: AbortSignal,
 ): Promise<{ valid: boolean; actualOpenId?: string }> {
   const domain = brand === 'lark' ? 'https://open.larksuite.com' : 'https://open.feishu.cn';
   const url = `${domain}/open-apis/authen/v1/user_info`;
@@ -108,6 +134,7 @@ async function verifyTokenIdentity(
   try {
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal,
     });
     const data = (await res.json()) as {
       code?: number;
@@ -347,6 +374,11 @@ export async function executeAuthorize(
 
   // 2. Guard against duplicate in-flight flows for this user.
   const flowKey = `${appId}:${senderOpenId}`;
+  const previousActiveFlow = activeFlows.get(flowKey);
+  if (previousActiveFlow) {
+    previousActiveFlow.superseded = true;
+    previousActiveFlow.controller.abort();
+  }
   let reuseCardId: string | undefined;
   let reuseSeq = 0;
 
@@ -532,7 +564,16 @@ export async function executeAuthorize(
     scope: effectiveScope,
   };
   pendingFlows.set(flowKey, currentFlow);
-  let pendingFlowDelete = false;
+  activeFlows.set(flowKey, currentFlow);
+  const isCurrentFlow = () =>
+    activeFlows.get(flowKey) === currentFlow && !currentFlow.superseded && !abortController.signal.aborted;
+  const deletePendingFlow = () => {
+    if (pendingFlows.get(flowKey) === currentFlow) pendingFlows.delete(flowKey);
+  };
+  const cleanupFlow = () => {
+    deletePendingFlow();
+    if (activeFlows.get(flowKey) === currentFlow) activeFlows.delete(flowKey);
+  };
   // Reserve independent Gateway work before the tool returns. OAuth may finish
   // after its initiating tool scope has closed; inheriting that scope aborts
   // session maintenance when the synthetic continuation enters on OpenClaw 10.6.
@@ -553,13 +594,19 @@ export async function executeAuthorize(
     })
       .then(async (result) => {
         // 被新流替换后，跳过所有卡片更新，避免覆盖新流的卡片内容
-        if (currentFlow.superseded) {
+        if (!isCurrentFlow()) {
           log.info(`flow superseded, skipping card update for cardId=${cardId}`);
           return;
         }
         if (result.ok) {
           // ===== 身份校验：验证实际授权用户与发起人一致 =====
-          const identity = await verifyTokenIdentity(brand, result.token.accessToken, senderOpenId);
+          const identity = await verifyTokenIdentity(
+            brand,
+            result.token.accessToken,
+            senderOpenId,
+            abortController.signal,
+          );
+          if (!isCurrentFlow()) return;
           if (!identity.valid) {
             log.warn(
               `identity mismatch! expected=${senderOpenId}, ` +
@@ -570,14 +617,13 @@ export async function executeAuthorize(
                 cfg,
                 cardId,
                 card: buildAuthIdentityMismatchCard(brand),
-                sequence: ++seq,
+                sequence: (currentFlow.sequence = ++seq),
                 accountId,
               });
             } catch (e) {
               log.warn(`failed to update card for identity mismatch: ${e}`);
             }
-            pendingFlows.delete(flowKey);
-            pendingFlowDelete = true;
+            deletePendingFlow();
             return;
           }
           // ===== 身份校验通过，继续保存 token =====
@@ -594,7 +640,7 @@ export async function executeAuthorize(
             scope: result.token.scope,
             grantedAt: now,
           };
-          await setStoredToken(storedToken);
+          if (!(await persistCurrentToken(flowKey, storedToken, isCurrentFlow)) || !isCurrentFlow()) return;
 
           // 1. Update card → success immediately so user sees
           //    visual confirmation right away.
@@ -603,15 +649,16 @@ export async function executeAuthorize(
               cfg,
               cardId,
               card: buildAuthSuccessCard(brand),
-              sequence: ++seq,
+              sequence: (currentFlow.sequence = ++seq),
               accountId,
             });
           } catch (e) {
             log.warn(`failed to update card to success: ${e}`);
           }
-          // 删除 pending flow
-          pendingFlows.delete(flowKey);
-          pendingFlowDelete = true;
+          if (!isCurrentFlow()) return;
+          // Release the card entry before a chained onboarding batch starts.
+          // Keep activeFlows until the full completion callback has settled.
+          deletePendingFlow();
 
           // 2. Send synthetic message to notify AI that auth is
           //    complete, so it can automatically retry the operation.
@@ -625,6 +672,7 @@ export async function executeAuthorize(
             }
           }
 
+          if (!isCurrentFlow()) return;
           if (skipSyntheticMessage) {
             log.info('skipSyntheticMessage=true, skipping synthetic message');
           } else
@@ -649,7 +697,12 @@ export async function executeAuthorize(
                 chatType: ticket.chatType,
                 threadId: ticket.threadId,
                 runtime: syntheticRuntime,
+                shouldDispatch: isCurrentFlow,
               });
+              if (status === 'skipped') {
+                log.info('authorization continuation skipped after cancellation');
+                return;
+              }
               log.info(`synthetic message queued (${status})`);
               log.info('synthetic message dispatched after successful auth');
             } catch (e) {
@@ -662,31 +715,23 @@ export async function executeAuthorize(
               cfg,
               cardId,
               card: buildAuthFailedCard(result.message),
-              sequence: ++seq,
+              sequence: (currentFlow.sequence = ++seq),
               accountId,
             });
           } catch (e) {
             log.warn(`failed to update card to failure: ${e}`);
           }
           // 删除 pending flow
-          pendingFlows.delete(flowKey);
-          pendingFlowDelete = true;
+          deletePendingFlow();
         }
       })
       .catch((err) => {
         log.error(`polling error: ${err}`);
       })
-      .finally(() => {
-        if (!pendingFlowDelete) {
-          // 只在当前 flow 仍是注册的那个时才删除，避免旧流误删新流的 entry
-          if (pendingFlows.get(flowKey) === currentFlow) {
-            pendingFlows.delete(flowKey);
-          }
-        }
-      }),
+      .finally(cleanupFlow),
   )
     .catch((err) => {
-      if (pendingFlows.get(flowKey) === currentFlow) pendingFlows.delete(flowKey);
+      cleanupFlow();
       log.error(`authorization background work failed: ${err}`);
     })
     .finally(disposeAuthorizationShutdown);

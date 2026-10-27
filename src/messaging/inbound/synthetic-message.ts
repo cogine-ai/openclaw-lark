@@ -28,6 +28,8 @@ export async function dispatchSyntheticTextMessage(params: {
     error?: (msg: string) => void;
   };
   forceMention?: boolean;
+  /** Optional lifecycle gate, checked after this task leaves the chat queue. */
+  shouldDispatch?: () => boolean;
   /** When true, run the real access-control gate with the mention requirement
    *  treated as satisfied (see handleFeishuMessage.cardActionGate). Use for
    *  card-action synthetic messages so group/DM admission + sender allowlists
@@ -47,6 +49,7 @@ export async function dispatchSyntheticTextMessage(params: {
     threadId,
     runtime,
     forceMention = true,
+    shouldDispatch,
     cardActionGate,
   } = params;
 
@@ -64,11 +67,16 @@ export async function dispatchSyntheticTextMessage(params: {
     },
   };
 
+  let skipped = false;
   const { status, promise } = enqueueFeishuChatTask({
     accountId,
     chatId,
     threadId,
     task: async () => {
+      if (shouldDispatch && !shouldDispatch()) {
+        skipped = true;
+        return;
+      }
       await withTicket(
         {
           messageId: syntheticMessageId,
@@ -96,5 +104,5 @@ export async function dispatchSyntheticTextMessage(params: {
   });
 
   await promise;
-  return status;
+  return skipped ? 'skipped' : status;
 }
