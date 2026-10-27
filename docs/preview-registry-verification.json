@@ -1,0 +1,10 @@
+{
+  "name": "@cogineai/openclaw-lark",
+  "version": "2026.10.10-cogine.1",
+  "anonymousPublicAccess": true,
+  "registryArchiveMatchesAcceptedBytes": true,
+  "sha256": "64e469ae1682a9ca2c72b6d9ce986f99a31cb9bfc89b31b07b9f98d4e5ceb1ad",
+  "integrity": "sha512-2iDruHMs7H44w9NPPdhTvct7VynVp++Eeg5pNMaP4is++ekqejXKK5Uk7AxblVjHdp6/aLs6t7bHdSU0x5Bl4w==",
+  "verifiedDistributionTag": "next",
+  "registryInstallVerified": true
+}

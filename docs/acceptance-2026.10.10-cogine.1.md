@@ -1,12 +1,12 @@
 # 2026.10.10-cogine.1 preview acceptance
 
-Status: final archive acceptance passed on the pilot Mac; npm publication is pending.
+Status: final archive acceptance passed; public npm next publication and registry installation verified.
 
 Target: this pilot Mac only, Node 24.22.1, OpenClaw 2026.10.6. Existing robot configuration, pairing and macOS Keychain authorization are preserved. No other Macs are changed.
 
 The previous 10.8-pilot.2 acceptance is historical evidence. This release must install and exercise its own exact archive, then publish that same archive under the next tag.
 
-Automatic checks and final-archive live acceptance are recorded below. Registry integrity verification is recorded after publication. No private chat content, credentials or user identifiers belong in this record.
+Automatic checks and final-archive live acceptance are recorded below. Registry integrity verification is recorded below. No private chat content, credentials or user identifiers belong in this record.
 
 ## Automatic checks completed
 
@@ -29,4 +29,13 @@ Automatic checks and final-archive live acceptance are recorded below. Registry 
 - The new read-only scope is im:chat:read. All previous scope grants remain present. Robot channel configuration, secret provider and existing credential file hashes are unchanged. Keychain authorization remains stored.
 - No other Macs were changed; this is not acceptance for other host versions, operating systems or every office-tool write action.
 
-The archive is frozen: publish this same file under the next tag rather than rebuilding an unaccepted artifact. npm publication has not occurred yet.
+## Published archive verification
+
+- Public package: https://www.npmjs.com/package/@cogineai/openclaw-lark/v/2026.10.10-cogine.1; next resolves to this preview version.
+- Downloaded anonymously from the registry and compared with the pilot-accepted archive: exact byte equality, SHA-256 unchanged.
+- Registry shasum: `724d9d799d37a2f7b680d4c9dc0a80c318abf447`.
+- Registry integrity: `sha512-2iDruHMs7H44w9NPPdhTvct7VynVp++Eeg5pNMaP4is++ekqejXKK5Uk7AxblVjHdp6/aLs6t7bHdSU0x5Bl4w==`.
+- Pilot Mac reinstalled the exact published npm version with pinning; Gateway generation8 applied, dist code still matches the accepted archive, 39 tools and healthy channels. Existing configuration and credential files remain unchanged.
+- OpenClaw10.6 emits a third-party npm-source trust warning for this package; the core checks the official package catalog, not CI attestations. The former npm-pack install was not trusted-official either. This is a warning, not a plugin load failure; no core records or allowlists were falsified to suppress it. See compatibility.md.
+
+The accepted file was uploaded unchanged; it was not rebuilt after manual acceptance.

@@ -31,3 +31,11 @@ The original macOS pilot confirmed native streaming and automatic results after 
 ## Streaming
 
 The observed lack of streaming was caused by the Codex execution plugin's message_tool reply default. Setting host `messages.visibleReplies=automatic` enabled the native reply channel. The plugin does not silently edit that setting; it is a global host policy unless overridden.
+
+## Third-party npm-source warning on core 10.6
+
+A normal npm install of this independently maintained package may show `provenance-invalid` / “OpenClaw cannot verify where this plugin came from”. In core10.6, `resolvePluginTrust` only classifies an ordinary npm package as trusted-official when its name appears in the official external-plugin catalog and its install record matches. This package is not in that catalog; the branch does not inspect npm CI attestations or OIDC signatures.
+
+An explicitly reviewed npm-pack file is classified as origin-path and avoids that warning, but it is not trusted-official either. Both sources use the same accepted code and have the same relevant permissions. The loader emits a warning and continues; the plugin does not use the official-only dispatchHookAgentTurn capability. Registry installation was verified with 39 tools and healthy channels.
+
+Do not impersonate an official package, edit trust records or weaken host protection to suppress the notice. Review the public source and archive checksums. CI provenance is useful future supply-chain evidence but does not change this version's official-catalog classification.
