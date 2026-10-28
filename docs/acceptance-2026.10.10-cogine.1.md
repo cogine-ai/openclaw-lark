@@ -1,10 +1,10 @@
-# 2026.10.10-cogine.1 preview acceptance
+# 2026.10.10-cogine.1 release acceptance
 
-Status: final archive acceptance passed; public npm next publication and registry installation verified.
+Status: final archive acceptance passed; public npm publication and registry installation verified. The maintainer designated this same package stable on 2026-10-28; `latest` resolves to it. It was initially published as a `next` preview.
 
 Target: this pilot Mac only, Node 24.22.1, OpenClaw 2026.10.6. Existing robot configuration, pairing and macOS Keychain authorization are preserved. No other Macs are changed.
 
-The previous 10.8-pilot.2 acceptance is historical evidence. This release must install and exercise its own exact archive, then publish that same archive under the next tag.
+The previous 10.8-pilot.2 acceptance is historical evidence. This release installed and exercised its own exact archive, then published that same archive under the `next` tag. Stable designation preserves those exact bytes and does not extend the acceptance scope.
 
 Automatic checks and final-archive live acceptance are recorded below. Registry integrity verification is recorded below. No private chat content, credentials or user identifiers belong in this record.
 
@@ -31,7 +31,7 @@ Automatic checks and final-archive live acceptance are recorded below. Registry 
 
 ## Published archive verification
 
-- Public package: https://www.npmjs.com/package/@cogineai/openclaw-lark/v/2026.10.10-cogine.1; next resolves to this preview version.
+- Public package: https://www.npmjs.com/package/@cogineai/openclaw-lark/v/2026.10.10-cogine.1; `latest` resolves to this stable version. `next` remains an alias for the initially published preview.
 - Downloaded anonymously from the registry and compared with the pilot-accepted archive: exact byte equality, SHA-256 unchanged.
 - Registry shasum: `724d9d799d37a2f7b680d4c9dc0a80c318abf447`.
 - Registry integrity: `sha512-2iDruHMs7H44w9NPPdhTvct7VynVp++Eeg5pNMaP4is++ekqejXKK5Uk7AxblVjHdp6/aLs6t7bHdSU0x5Bl4w==`.

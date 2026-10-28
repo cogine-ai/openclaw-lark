@@ -6,7 +6,7 @@
 
 - GitHub：<https://github.com/cogine-ai/openclaw-lark>
 - npm 包名：`@cogineai/openclaw-lark`
-- 当前源码版本：`2026.10.10-cogine.1`（预览版，使用 `next` 标签）
+- 当前稳定版本：`2026.10.10-cogine.1`（默认 `latest` 标签）
 - 目标核心：OpenClaw `2026.10.6`；Node.js `24.22.1`（其他满足核心要求的版本需另行验收）
 
 ## 本分支的改动
@@ -19,10 +19,10 @@
 
 ## 安装
 
-npm 预览包使用 `next` 标签，任何用户都可以安装：
+npm 稳定版已公开，任何用户都可以安装：
 
 ```sh
-openclaw plugins install @cogineai/openclaw-lark@next
+openclaw plugins install @cogineai/openclaw-lark
 ```
 
 也可以从源码构建本地包：
@@ -38,7 +38,7 @@ pnpm pack
 openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.10.10-cogine.1.tgz
 ```
 
-预览版本使用 `next` 标签；稳定发布后再提供默认安装命令。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
+默认安装命令使用 `latest`；需要固定版本时可使用 `@cogineai/openclaw-lark@2026.10.10-cogine.1`。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
 
 ### 从其他 Lark 包迁移
 
