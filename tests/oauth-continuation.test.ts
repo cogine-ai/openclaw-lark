@@ -8,6 +8,7 @@ import { executeAuthorize, type ExecuteAuthorizeParams } from '../src/tools/oaut
 import { injectInboundHandler } from '../src/messaging/inbound/handler-registry';
 import { _resetShutdownHooks, drainShutdownHooks } from '../src/core/shutdown-hooks';
 import { enqueueFeishuChatTask } from '../src/channel/chat-queue';
+import { assertOwnerAccessStrict, OwnerAccessDeniedError } from '../src/core/owner-policy';
 
 const doubles = vi.hoisted(() => ({
   poll: vi.fn(),
@@ -171,6 +172,25 @@ async function runAuthorization(kind: 'success' | 'expired' | 'identity-mismatch
 }
 
 describe('OAuth continuation after the initiating tool scope closes', () => {
+  it('rejects a non-owner before creating a card, polling or saving credentials', async () => {
+    vi.mocked(assertOwnerAccessStrict).mockRejectedValueOnce(
+      new OwnerAccessDeniedError('fixture-non-owner', 'fixture-owner'),
+    );
+
+    const result = await executeAuthorize({
+      account: { appId: 'fixture-app', appSecret: 'fixture-not-a-secret', accountId: 'default', brand: 'feishu' },
+      senderOpenId: 'fixture-non-owner',
+      scope: 'calendar:calendar.event:read',
+      forceAuth: true,
+      cfg: {},
+    } as ExecuteAuthorizeParams);
+
+    expect(result.details).toMatchObject({ error: 'permission_denied' });
+    expect(doubles.createCard).not.toHaveBeenCalled();
+    expect(doubles.poll).not.toHaveBeenCalled();
+    expect(doubles.save).not.toHaveBeenCalled();
+  });
+
   it('resumes through the real synthetic queue and 10.6 maintenance reader', () => runAuthorization('success'));
   it('does not resume or save an expired authorization', () => runAuthorization('expired'));
   it('does not resume or save a different user’s token', () => runAuthorization('identity-mismatch'));

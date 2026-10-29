@@ -6,7 +6,7 @@
 
 - GitHub：<https://github.com/cogine-ai/openclaw-lark>
 - npm 包名：`@cogineai/openclaw-lark`
-- 当前稳定版本：`2026.10.10-cogine.1`（默认 `latest` 标签）
+- 当前稳定版本：`2026.10.10-cogine.2`（默认 `latest` 标签）
 - 目标核心：OpenClaw `2026.10.6`；Node.js `24.22.1`（其他满足核心要求的版本需另行验收）
 
 ## 本分支的改动
@@ -14,6 +14,7 @@
 1. 在插件清单声明 39 个工具，满足核心的 `contracts.tools` 注册要求。
 2. OAuth 轮询及完成后的续跑使用核心公开 SDK 建立独立后台工作生命周期，避免工具结束后的取消信号导致会话写入 `AbortError`；服务关闭时取消并回收轮询。
 3. 更新包名、版本识别、构建与公开发布流程。保留插件 ID `openclaw-lark`、渠道 `feishu` 和配置路径，迁移时不需要另建机器人。
+4. 移除社区版过宽的命令提前拒收，避免图片下载后的本地路径被当作系统命令；保留聊天准入、核心命令授权和 OAuth Owner 校验。
 
 继承消息收发、流式卡片、OAuth、文档、日历、任务、云盘、知识库、表格等工具。工具的可用性仍取决于应用权限和用户授权；并非所有办公操作都完成了真实环境验收。
 
@@ -35,10 +36,10 @@ pnpm install --frozen-lockfile
 pnpm build
 pnpm pack
 # 使用生成的 .tgz 的绝对路径
-openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.10.10-cogine.1.tgz
+openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.10.10-cogine.2.tgz
 ```
 
-默认安装命令使用 `latest`；需要固定版本时可使用 `@cogineai/openclaw-lark@2026.10.10-cogine.1`。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
+默认安装命令使用 `latest`；需要固定版本时可使用 `@cogineai/openclaw-lark@2026.10.10-cogine.2`。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
 
 ### 从其他 Lark 包迁移
 
@@ -72,7 +73,7 @@ openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.
 
 - 运行依赖已更新，生产依赖审计与全新消费者安装结果见 [依赖审计状态](docs/dependency-status.md)。发布流程仍检查运行依赖；固定核心的开发测试依赖另行列出。
 
-- 目标验收组合为 macOS + OpenClaw 2026.10.6；每个发布包的自动及本机真实验收证据见 [验收记录](docs/acceptance-2026.10.10-cogine.1.md)，不把旧试点包的结果当作新包验收。
+- 目标验收组合为 macOS + OpenClaw 2026.10.6；每个发布包的验证范围见 [验收记录](docs/acceptance-2026.10.10-cogine.2.md)，不把旧试点包的结果当作新包验收。
 - 自动测试覆盖成功、过期、身份不匹配，以及身份校验、凭据写入、卡片更新、完成回调期间的关闭/重发；旧流程不能覆盖新令牌或触发过期续跑。
 - Windows / Linux 的真实飞书连接、所有办公工具的写操作尚未逐项验收。升级其他机器前先小范围验证。
 - 继承的任务清单权限映射可能要求额外写权限；诊断命令对 SecretRef 的处理仍有已知局限。这两项未在此补丁中修复。

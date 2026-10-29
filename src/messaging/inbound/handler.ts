@@ -346,37 +346,6 @@ export async function handleFeishuMessage(params: {
     }
   }
 
-  // B1: surface an explicit reason when a slash command is rejected by
-  // authorization, instead of letting it end silently (delivered=false).
-  if (commandAuthorized === false && /^\s*\//.test(ctx.content)) {
-    try {
-      const replyInThreadCfg =
-        groupConfig?.replyInThread ??
-        defaultGroupConfig?.replyInThread ??
-        account.config?.replyInThread;
-      const inThread =
-        Boolean(ctx.threadId) &&
-        (account.config?.threadSession === true || replyInThreadCfg === true);
-      await sendMessageFeishu({
-        cfg: accountScopedCfg,
-        to: ctx.chatId,
-        text: '⚠️ 系统命令被拒绝：当前发送者未获授权执行系统命令（需在账号 allowFrom 或全局 commands.ownerAllowFrom 中授权）。',
-        i18nTexts: {
-          zh_cn: '⚠️ 系统命令被拒绝：当前发送者未获授权执行系统命令（需在账号 allowFrom 或全局 commands.ownerAllowFrom 中授权）。',
-          en_us:
-            '⚠️ System command rejected: the sender is not authorized to run system commands (authorize in the account allowFrom or global commands.ownerAllowFrom).',
-        },
-        accountId: account.accountId,
-        replyToMessageId: replyToMessageId ?? ctx.messageId,
-        replyInThread: inThread,
-        threadId: inThread ? ctx.threadId : undefined,
-      });
-    } catch (err) {
-      log(`feishu[${account.accountId}]: failed to send command-rejected notice: ${String(err)}`);
-    }
-    return;
-  }
-
   // 9. Dispatch to agent
   // groupConfig and defaultGroupConfig are already resolved above.
 
