@@ -25,17 +25,17 @@ pnpm check:pack
 pnpm audit --prod --audit-level high
 # Build and publish the same inspected tarball; path depends on package version.
 pnpm pack
-npm publish ./cogineai-openclaw-lark-2026.10.10-cogine.1.tgz --access public --tag next
+npm publish ./cogineai-openclaw-lark-2026.10.10-cogine.2.tgz --access public --tag latest
 ```
 
-This is the initial preview publication procedure. Version `2026.10.10-cogine.1` is already public; do not republish it. Use a new version and matching artifact path for a future release, choosing `--tag latest` for a stable release or `--tag next` for a preview. Publishing is an explicit release action; preparing this repository does not execute it. Verify the registry version and test installation after publishing.
+This publishes the inspected cogine.2 archive directly as stable. Do not republish an existing version. Use a new version and matching artifact path for a future release, choosing `--tag latest` for a stable release or `--tag next` for a preview. Publishing is an explicit release action; preparing this repository does not execute it. Verify the registry version and test installation after publishing.
 
 ## Promote an existing package to stable
 
 Point `latest` at the exact version that passed acceptance; do not rebuild or republish the package:
 
 ```sh
-npm dist-tag add @cogineai/openclaw-lark@2026.10.10-cogine.1 latest
+npm dist-tag add @cogineai/openclaw-lark@2026.10.10-cogine.2 latest
 npm view @cogineai/openclaw-lark dist-tags --json
 ```
 
