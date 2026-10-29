@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.10.10-cogine.2
+
+- Remove the community slash-prefix rejection that dropped ordinary image-first messages after media placeholders became absolute local paths.
+- Keep chat admission, core command authorization metadata, and OAuth App Owner checks unchanged. Restore the official plugin's access to help/start/doctor for users admitted to the conversation.
+- Add inbound-message regression coverage for media, ordinary paths, command authorization forwarding, and denied chat access; retain OAuth lifecycle coverage.
+
 ## 2026.10.10-cogine.1 — preview
 
 - Sync community v2026.10.10 (1e8816300787e250ef8bd0b9716ba93dcd19de46), including command owner authorization, channel/conversation separation, session-store fallback and skill guidance fixes.

@@ -32,6 +32,12 @@ The original macOS pilot confirmed native streaming and automatic results after 
 
 The observed lack of streaming was caused by the Codex execution plugin's message_tool reply default. Setting host `messages.visibleReplies=automatic` enabled the native reply channel. The plugin does not silently edit that setting; it is a global host policy unless overridden.
 
+## Ordinary media messages and command authorization
+
+Version 2026.10.10-cogine.2 removes the community 10.10 B1 early-return block. Media substitution can turn an image-first message into text starting with an absolute path. The SDK intentionally allows false positives when deciding whether to compute command authorization; a false authorization result does not deny ordinary chat admission. The handler now continues to dispatch with the original authorization metadata, as the official Lark plugin does.
+
+Chat admission and OAuth App Owner checks remain in place. Users admitted to the conversation regain the official plugin's help/start/doctor access; doctor contains current-account diagnostic information. No new command classifier, permissions configuration or core patch is introduced.
+
 ## Third-party npm-source warning on core 10.6
 
 A normal npm install of this independently maintained package may show `provenance-invalid` / “OpenClaw cannot verify where this plugin came from”. In core10.6, `resolvePluginTrust` only classifies an ordinary npm package as trusted-official when its name appears in the official external-plugin catalog and its install record matches. This package is not in that catalog; the branch does not inspect npm CI attestations or OIDC signatures.

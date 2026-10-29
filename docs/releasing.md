@@ -2,7 +2,7 @@
 
 Package: `@cogineai/openclaw-lark`. The cogineai scope is the npm namespace; the GitHub owner remains cogine-ai. Public access is not restricted to organization members. `publishConfig.access=public` makes the package installable by everyone. GitHub repository ownership and npm scope permissions are separate: a publisher must have npm access to the cogineai scope.
 
-Current stable version: `2026.10.10-cogine.1`, available through the default `latest` tag. It was initially published through `next` and then designated stable after the single-Mac acceptance. This changes the distribution label, not the immutable package archive or its validation scope.
+Current stable version: `2026.10.10-cogine.2`, available through the default `latest` tag. The initial cogine.1 release was published through `next` and then designated stable after the single-Mac acceptance. Each package archive remains immutable; this patch has its own verification record.
 
 ## Validate a release
 

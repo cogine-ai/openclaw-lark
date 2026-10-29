@@ -1,6 +1,6 @@
 {
   "name": "@cogineai/openclaw-lark",
-  "version": "2026.10.10-cogine.1",
+  "version": "2026.10.10-cogine.2",
   "description": "Lark/Feishu channel plugin for OpenClaw, maintained by Cogine",
   "type": "module",
   "exports": {
