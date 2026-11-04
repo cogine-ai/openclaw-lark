@@ -81,14 +81,16 @@ export async function dispatchPermissionNotification(
 
   dc.log(`feishu[${dc.account.accountId}]: dispatching permission error notification to agent`);
 
-  await dc.core.channel.reply.dispatchReplyFromConfig({
-    ctx: permCtx,
-    cfg: dc.accountScopedCfg,
+  await dc.core.channel.reply.withReplyDispatcher({
     dispatcher: permDispatcher,
-    replyOptions: permReplyOptions,
+    run: () => dc.core.channel.reply.dispatchReplyFromConfig({
+      ctx: permCtx,
+      cfg: dc.accountScopedCfg,
+      dispatcher: permDispatcher,
+      replyOptions: permReplyOptions,
+    }),
   });
 
-  await permDispatcher.waitForIdle();
   markPermComplete();
   markPermIdle();
 }

@@ -298,29 +298,24 @@ async function dispatchNormalMessage(
     : <T>(fn: () => Promise<T>): Promise<T> => fn();
 
   try {
+    // The host wrapper always releases the dispatcher's pending slot, including
+    // failed runs, and drains queued deliveries before card finalization.
+    // Keep settlement inside the bot-peer context for outbound mentions.
     const { queuedFinal, counts } = await withBotPeer(() =>
-      dc.core.channel.reply.dispatchReplyFromConfig({
-        ctx: ctxPayload,
-        cfg: dc.accountScopedCfg,
+      dc.core.channel.reply.withReplyDispatcher({
         dispatcher,
-        replyOptions: {
-          ...replyOptions,
-          abortSignal: abortController.signal,
-          ...(skillFilter ? { skillFilter } : {}),
-        },
+        run: () => dc.core.channel.reply.dispatchReplyFromConfig({
+          ctx: ctxPayload,
+          cfg: dc.accountScopedCfg,
+          dispatcher,
+          replyOptions: {
+            ...replyOptions,
+            abortSignal: abortController.signal,
+            ...(skillFilter ? { skillFilter } : {}),
+          },
+        }),
       }),
     );
-
-    // Wait for all enqueued deliver() calls in the SDK's sendChain to
-    // complete before marking the dispatch as done.  Without this,
-    // dispatchReplyFromConfig() may return while the final deliver() is
-    // still pending in the Promise chain, causing markFullyComplete() to
-    // block it and leaving completedText incomplete — which in turn makes
-    // the streaming card's final update show truncated content.
-    //
-    // Run under withBotPeer too so any deliveries flushed during waitForIdle
-    // still see the peer context.
-    await withBotPeer(() => dispatcher.waitForIdle());
 
     markFullyComplete();
     markDispatchIdle();
