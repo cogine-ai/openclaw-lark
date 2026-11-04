@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Settle host reply dispatchers after normal replies and permission notifications, including failed agent runs, so completed replies do not leave Gateway drain waiting. Preserve queued delivery before final card completion.
+
 ## 2026.10.10-cogine.2
 
 - Remove the community slash-prefix rejection that dropped ordinary image-first messages after media placeholders became absolute local paths.

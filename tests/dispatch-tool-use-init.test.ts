@@ -1,4 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createReplyDispatcherWithTyping, settleReplyDispatcher } from 'openclaw/plugin-sdk/reply-runtime';
 
 const {
   buildDispatchContextMock,
@@ -113,6 +117,27 @@ vi.mock('../src/core/lark-ticket', () => ({
 }));
 
 import { dispatchToAgent } from '../src/messaging/inbound/dispatch';
+import { currentBotPeerContext } from '../src/messaging/outbound/bot-peer-context';
+
+type HostDispatcher = ReturnType<typeof createReplyDispatcherWithTyping>['dispatcher'];
+let withReplyDispatcher: <T>(params: { dispatcher: HostDispatcher; run: () => Promise<T> }) => Promise<T>;
+const ownedDispatchers: HostDispatcher[] = [];
+
+beforeAll(async () => {
+  // Test only: use the locked 10.6 host lifecycle implementation without a Gateway.
+  // Production calls the public runtime.channel.reply.withReplyDispatcher API.
+  const require = createRequire(import.meta.url);
+  const dist = dirname(dirname(require.resolve('openclaw/plugin-sdk/core')));
+  const core = await import(pathToFileURL(join(dist, 'dispatch-dispatcher-BKxE1A-W.mjs')).href);
+  withReplyDispatcher = core.r;
+});
+
+afterEach(async () => {
+  vi.restoreAllMocks();
+  for (const dispatcher of ownedDispatchers.splice(0)) {
+    await settleReplyDispatcher({ dispatcher });
+  }
+});
 
 function createDispatchContext() {
   return {
@@ -151,6 +176,7 @@ function createDispatchContext() {
         },
         reply: {
           dispatchReplyFromConfig: dispatchReplyFromConfigMock,
+          withReplyDispatcher,
         },
       },
     },
@@ -173,6 +199,7 @@ function createDispatchContext() {
 
 function createDispatcher() {
   return {
+    markComplete: vi.fn(),
     waitForIdle: vi.fn().mockResolvedValue(undefined),
   };
 }
@@ -260,4 +287,153 @@ describe('dispatchToAgent tool_use trace initialization', () => {
     });
   });
 
+});
+
+
+function pendingReplyDispatches(): number {
+  const registry = (globalThis as Record<symbol, Set<{ pending: () => number }> | undefined>)[
+    Symbol.for('openclaw.activeReplyDispatchers')
+  ];
+  return [...(registry ?? [])].reduce((total, entry) => total + entry.pending(), 0);
+}
+
+function useHostDispatcher(options: {
+  deliver?: () => Promise<void>;
+  onFullyComplete?: () => void;
+  onIdle?: () => void;
+} = {}) {
+  const host = createReplyDispatcherWithTyping({
+    deliver: options.deliver ?? (async () => {}),
+    onIdle: options.onIdle,
+  });
+  ownedDispatchers.push(host.dispatcher);
+  const markFullyComplete = vi.fn(options.onFullyComplete ?? (() => {}));
+  createFeishuReplyDispatcherMock.mockReturnValueOnce({
+    ...host,
+    markFullyComplete,
+    abortCard: vi.fn(),
+  });
+  return { ...host, markFullyComplete };
+}
+
+function dispatchOnce(dc = createDispatchContext()) {
+  buildDispatchContextMock.mockReturnValueOnce(dc);
+  return dispatchToAgent({
+    ctx: dc.ctx as never,
+    mediaPayload: {},
+    account: dc.account as never,
+    accountScopedCfg: {} as never,
+    historyLimit: 0,
+  });
+}
+
+describe('normal reply dispatcher settlement', () => {
+  it('releases the host pending slot after a delivered final reply', async () => {
+    const before = pendingReplyDispatches();
+    const { dispatcher } = useHostDispatcher();
+    expect(pendingReplyDispatches()).toBe(before + 1);
+    dispatchReplyFromConfigMock.mockImplementationOnce(async () => {
+      dispatcher.sendFinalReply({ text: 'done' });
+      return { queuedFinal: true, counts: { final: 1 } };
+    });
+
+    await dispatchOnce();
+
+    expect(pendingReplyDispatches()).toBe(before);
+  });
+
+  it('releases the host pending slot when the model run throws', async () => {
+    const before = pendingReplyDispatches();
+    const { markFullyComplete } = useHostDispatcher();
+    const failure = new Error('model unavailable');
+    dispatchReplyFromConfigMock.mockRejectedValueOnce(failure);
+
+    await expect(dispatchOnce()).rejects.toBe(failure);
+
+    expect(pendingReplyDispatches()).toBe(before);
+    expect(markFullyComplete).not.toHaveBeenCalled();
+  });
+
+  it('waits for queued delivery before finalizing the card and notifying idle', async () => {
+    let release!: () => void;
+    let started!: () => void;
+    const deliveryGate = new Promise<void>((resolve) => { release = resolve; });
+    const deliveryStarted = new Promise<void>((resolve) => { started = resolve; });
+    const events: string[] = [];
+    let complete = false;
+    const { dispatcher, markFullyComplete } = useHostDispatcher({
+      deliver: async () => {
+        started();
+        await deliveryGate;
+        events.push('delivered');
+      },
+      onFullyComplete: () => { complete = true; events.push('complete'); },
+      onIdle: () => { if (complete) events.push('final-idle'); },
+    });
+    dispatchReplyFromConfigMock.mockImplementationOnce(async () => {
+      dispatcher.sendFinalReply({ text: 'final paragraph' });
+      return { queuedFinal: true, counts: { final: 1 } };
+    });
+    const pending = dispatchOnce();
+    try {
+      await deliveryStarted;
+      expect(markFullyComplete).not.toHaveBeenCalled();
+    } finally {
+      release();
+    }
+    await pending;
+
+    expect(events).toEqual(['delivered', 'complete', 'final-idle']);
+  });
+
+  it('retains bot-peer context while draining delayed deliveries', async () => {
+    const base = createDispatchContext();
+    const dc = {
+      ...base,
+      isGroup: true,
+      ctx: { ...base.ctx, chatType: 'group', senderIsBot: true },
+    };
+    const { dispatcher } = useHostDispatcher();
+    const waitForIdle = dispatcher.waitForIdle.bind(dispatcher);
+    const contexts: unknown[] = [];
+    vi.spyOn(dispatcher, 'waitForIdle').mockImplementation(async () => {
+      await Promise.resolve();
+      contexts.push(currentBotPeerContext());
+      return waitForIdle();
+    });
+    dispatchReplyFromConfigMock.mockImplementationOnce(async () => {
+      expect(currentBotPeerContext()).toMatchObject({ peerOpenId: 'ou_sender_1' });
+      dispatcher.sendFinalReply({ text: 'peer reply' });
+      return { queuedFinal: true, counts: { final: 1 } };
+    });
+
+    await dispatchOnce(dc);
+
+    expect(contexts).toEqual([expect.objectContaining({ peerOpenId: 'ou_sender_1' })]);
+    expect(currentBotPeerContext()).toBeUndefined();
+  });
+
+  it('preserves the original dispatch error if draining also fails', async () => {
+    const before = pendingReplyDispatches();
+    const { dispatcher } = useHostDispatcher();
+    const failure = new Error('original model error');
+    dispatchReplyFromConfigMock.mockRejectedValueOnce(failure);
+    vi.spyOn(dispatcher, 'waitForIdle').mockRejectedValueOnce(new Error('drain failed'));
+
+    await expect(dispatchOnce()).rejects.toBe(failure);
+
+    expect(pendingReplyDispatches()).toBe(before);
+  });
+
+  it('propagates a drain failure when the model run succeeded', async () => {
+    const before = pendingReplyDispatches();
+    const { dispatcher, markFullyComplete } = useHostDispatcher();
+    const failure = new Error('drain failed');
+    vi.spyOn(dispatcher, 'waitForIdle').mockRejectedValueOnce(failure);
+
+    await expect(dispatchOnce()).rejects.toBe(failure);
+
+    expect(pendingReplyDispatches()).toBe(before);
+    expect(markFullyComplete).not.toHaveBeenCalled();
+  });
 });
