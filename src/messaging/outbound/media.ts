@@ -275,6 +275,56 @@ async function* asyncIteratorToIterable<T>(iterator: AsyncIterator<T>): AsyncIte
 // downloadMessageResourceFeishu
 // ---------------------------------------------------------------------------
 
+function findDispositionParameter(value: string, name: string): string | undefined {
+  let start = 0;
+  let quoted = false;
+  let escaped = false;
+  for (let index = 0; index <= value.length; index++) {
+    const char = value[index];
+    if (index === value.length || (char === ';' && !quoted)) {
+      const parameter = value.slice(start, index).trim();
+      const separator = parameter.indexOf('=');
+      if (separator >= 0 && parameter.slice(0, separator).trim().toLowerCase() === name) {
+        return parameter.slice(separator + 1).trim();
+      }
+      start = index + 1;
+      continue;
+    }
+    if (quoted && escaped) {
+      escaped = false;
+    } else if (quoted && char === '\\') {
+      escaped = true;
+    } else if (char === '"') {
+      quoted = !quoted;
+    }
+  }
+  return undefined;
+}
+
+function decodeDispositionFileName(value: string): string | undefined {
+  const extendedName = findDispositionParameter(value, 'filename*')?.match(/^(?:UTF-8'')?([^']+)$/i)?.[1];
+  if (extendedName) {
+    try {
+      return decodeURIComponent(extendedName.replace(/^"(.*)"$/, '$1'));
+    } catch {
+      // Use the plain filename when the extended value cannot be decoded.
+    }
+  }
+
+  const plainValue = findDispositionParameter(value, 'filename');
+  const fileName = plainValue?.startsWith('"')
+    ? plainValue.match(/^"((?:\\.|[^"\\])*)"$/s)?.[1]?.replace(/\\(.)/gs, '$1').trim()
+    : plainValue?.replace(/^'(.*)'$/, '$1').trim();
+  if (!fileName) return undefined;
+
+  // Preserve the existing percent-decoding of plain filenames.
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
+}
+
 /**
  * Download a resource (image or file) attached to a specific message.
  *
@@ -318,10 +368,7 @@ export async function downloadMessageResourceFeishu(params: {
     const resp = response as Record<string, any>;
     const disposition = resp.headers?.['content-disposition'] ?? resp.headers?.['Content-Disposition'];
     if (typeof disposition === 'string') {
-      const match = disposition.match(/filename[*]?=(?:UTF-8'')?["']?([^"';\n]+)/i);
-      if (match) {
-        fileName = decodeURIComponent(match[1].trim());
-      }
+      fileName = decodeDispositionFileName(disposition);
     }
   }
 
