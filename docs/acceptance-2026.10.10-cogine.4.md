@@ -4,9 +4,10 @@ Target: macOS, Node 24.22.1, OpenClaw 2026.10.6. Plugin identity, 39 tool contra
 
 ## Source and package checks
 
-- 507 tests passed across 60 files, including actual Core dispatcher ownership and SSRF guard regressions, OAuth continuation, attachment names and inbound command authorization.
+- 509 tests passed across 60 files, including actual Core dispatcher ownership and SSRF guard regressions, OAuth continuation, attachment names and inbound command authorization.
 - Typecheck, lint (zero errors; existing warnings), build and package checks passed. Production dependency audit reported no advisories.
-- Runtime acceptance against the final archive is pending; source checks do not establish live Feishu behavior.
+- The final archive enables Core's existing `allowRfc2544BenchmarkRange` option to retain fake-IP proxy support for `198.18.0.0/15`. Loopback, RFC 1918, CGNAT, mapped-private IPv6 and configured denied hostnames remain blocked.
+- Runtime acceptance against the final archive is pending; source checks do not establish live Feishu behavior. Agent reply acceptance will use an independently configured API provider.
 
 ## Upstream references
 

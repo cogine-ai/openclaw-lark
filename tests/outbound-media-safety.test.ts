@@ -80,6 +80,20 @@ describe('remote media uses the host SSRF guard', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('supports a fake-IP proxy address in 198.18.0.0/15', async () => {
+    lookup.mockResolvedValue([{ address: '198.18.0.6', family: 4 }]);
+    fetchMock.mockResolvedValue(new Response('proxy image bytes'));
+    expect(await fetchRemoteImageBuffer('https://public.example/image.png', cfg)).toEqual(Buffer.from('proxy image bytes'));
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('still enforces the hostname deny list with a fake-IP proxy', async () => {
+    lookup.mockResolvedValue([{ address: '198.18.0.6', family: 4 }]);
+    fetchMock.mockResolvedValue(new Response('must not download'));
+    await expect(fetchRemoteImageBuffer('https://blocked.example/image.png', deniedCfg)).rejects.toThrow(/blocked|denied/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('fails closed when DNS fails', async () => {
     lookup.mockRejectedValue(new Error('DNS unavailable'));
     resolve.mockRejectedValue(new Error('DNS unavailable'));

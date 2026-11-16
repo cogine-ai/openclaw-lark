@@ -1023,8 +1023,11 @@ async function fetchMediaBuffer(
     const { response, release } = await fetchWithSsrFGuard({
       url: raw,
       timeoutMs: FETCH_TIMEOUT_MS,
-      // Honor the operator's deny list without inheriting web_fetch private-network opt-ins.
-      policy: { blockedHostnames: cfg.tools?.web?.fetch?.ssrfPolicy?.blockedHostnames },
+      policy: {
+        // Preserve fake-IP proxy support without allowing other private/special-use ranges.
+        allowRfc2544BenchmarkRange: true,
+        blockedHostnames: cfg.tools?.web?.fetch?.ssrfPolicy?.blockedHostnames,
+      },
     });
     try {
       if (!response.ok) {
