@@ -7,7 +7,17 @@ Target: macOS, Node 24.22.1, OpenClaw 2026.10.6. Plugin identity, 39 tool contra
 - 509 tests passed across 60 files, including actual Core dispatcher ownership and SSRF guard regressions, OAuth continuation, attachment names and inbound command authorization.
 - Typecheck, lint (zero errors; existing warnings), build and package checks passed. Production dependency audit reported no advisories.
 - The final archive enables Core's existing `allowRfc2544BenchmarkRange` option to retain fake-IP proxy support for `198.18.0.0/15`. Loopback, RFC 1918, CGNAT, mapped-private IPv6 and configured denied hostnames remain blocked.
-- Runtime acceptance against the final archive is pending; source checks do not establish live Feishu behavior. Agent reply acceptance will use an independently configured API provider.
+
+## Single-Mac package pilot
+
+- Final archive SHA-256: `b132f0d9c8f344756c18c6eaa5ff098e4e0e7404d3b3c039a2a16e0f55adc6a2`. All 25 package files match the installed archive; Gateway registers all 39 tools.
+- The installed parser escapes the malicious link-destination fixture. The installed downloader rejects loopback, mapped-private IPv6, CGNAT and configured denied hosts with Core's SSRF guard.
+- A real public image download through a fake-IP proxy and public redirect was sent to Feishu and read back as an image.
+- Real Vorbis `.ogg` and Opus `.ogg` uploads were read back from Feishu as `file` and `audio`, respectively.
+- Redirect-to-private rejection was exercised against the installed downloader and real Core guard with controlled HTTP responses. Public redirect fixtures returned HTTP 403 and were not counted as proof of this rejection.
+- Bot configuration, credential files and existing Keychain grant were preserved during both package installs.
+- Agent streaming, read-only office tools and post-reply Gateway drain acceptance remain pending an independently configured API provider. No stable npm publication has occurred yet.
+
 
 ## Upstream references
 
