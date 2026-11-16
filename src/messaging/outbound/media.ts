@@ -10,14 +10,13 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import * as dns from 'node:dns/promises';
 import * as fs from 'node:fs';
-import * as net from 'node:net';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { Readable } from 'node:stream';
 
 import type { OpenClawConfig } from 'openclaw/plugin-sdk/core';
+import { fetchWithSsrFGuard } from 'openclaw/plugin-sdk/ssrf-runtime';
 import { LarkClient } from '../../core/lark-client';
 import { normalizeFeishuTarget, resolveReceiveIdType } from '../../core/targets';
 import { larkLogger } from '../../core/lark-logger';
@@ -657,8 +656,6 @@ const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.web
 
 /** Extension-to-Feishu-file-type mapping. */
 const EXTENSION_TYPE_MAP: Record<string, 'opus' | 'mp4' | 'pdf' | 'doc' | 'xls' | 'ppt' | 'stream'> = {
-  '.opus': 'opus',
-  '.ogg': 'opus',
   '.mp4': 'mp4',
   '.mov': 'mp4',
   '.avi': 'mp4',
@@ -686,6 +683,15 @@ const EXTENSION_TYPE_MAP: Record<string, 'opus' | 'mp4' | 'pdf' | 'doc' | 'xls' 
 export function detectFileType(fileName: string): 'opus' | 'mp4' | 'pdf' | 'doc' | 'xls' | 'ppt' | 'stream' {
   const ext = path.extname(fileName).toLowerCase();
   return EXTENSION_TYPE_MAP[ext] ?? 'stream';
+}
+
+/** RFC 7845: the first Ogg page carries the Opus identification packet. */
+function isOggOpusAudio(buffer: Buffer): boolean {
+  const segmentCount = buffer[26];
+  if (!segmentCount || buffer.toString('latin1', 0, 4) !== 'OggS') return false;
+  const packetOffset = 27 + segmentCount;
+  return buffer.length >= packetOffset + 19 &&
+    buffer.toString('latin1', packetOffset, packetOffset + 8) === 'OpusHead';
 }
 
 /**
@@ -878,7 +884,7 @@ export async function uploadAndSendMediaLark(params: {
     buffer = mediaBuffer;
     log.debug(`using provided buffer: ${buffer.length} bytes`);
   } else if (mediaUrl) {
-    buffer = await fetchMediaBuffer(mediaUrl, mediaLocalRoots);
+    buffer = await fetchMediaBuffer(mediaUrl, mediaLocalRoots, cfg);
     log.debug(`fetched media: ${buffer.length} bytes from "${mediaUrl}"`);
 
     // Derive a file name from the URL if none was provided.
@@ -920,7 +926,7 @@ export async function uploadAndSendMediaLark(params: {
   }
 
   // Upload as file, then send as file or audio message.
-  const fileType = detectFileType(resolvedFileName);
+  const fileType = isOggOpusAudio(buffer) ? 'opus' : detectFileType(resolvedFileName);
   const isAudio = fileType === 'opus';
   const isVideo = fileType === 'mp4';
   const duration = isAudio ? parseOggOpusDuration(buffer) : isVideo ? parseMp4Duration(buffer) : undefined;
@@ -964,83 +970,8 @@ export async function uploadAndSendMediaLark(params: {
  * Fetch remote image bytes by URL (http/https only).
  * Local file access is denied. Includes SSRF protection.
  */
-export async function fetchRemoteImageBuffer(url: string): Promise<Buffer> {
-  return fetchMediaBuffer(url, undefined);
-}
-
-// ---------------------------------------------------------------------------
-// SSRF protection — private/reserved IP filtering
-// ---------------------------------------------------------------------------
-
-/**
- * Check whether an IP address belongs to a private or reserved range.
- *
- * Blocks: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16,
- * 169.254.0.0/16 (link-local / cloud metadata), 0.0.0.0,
- * IPv6 loopback (::1), link-local (fe80::), ULA (fc/fd).
- */
-function isPrivateIP(ip: string): boolean {
-  // IPv4 private / reserved ranges
-  if (ip.startsWith('127.')) return true;
-  if (ip.startsWith('10.')) return true;
-  if (ip.startsWith('192.168.')) return true;
-  if (ip.startsWith('169.254.')) return true;
-  if (ip === '0.0.0.0') return true;
-  if (/^172\.(1[6-9]|2[0-9]|3[01])\./.test(ip)) return true;
-
-  // IPv6 private / reserved ranges
-  if (ip === '::1' || ip === '::') return true;
-  if (ip.startsWith('fe80:')) return true; // link-local
-  if (ip.startsWith('fc') || ip.startsWith('fd')) return true; // ULA
-  return false;
-}
-
-/**
- * Validate that a remote URL does not target private/reserved IP addresses.
- *
- * Resolves the hostname via DNS and checks all returned addresses.
- * Rejects URLs with non-http(s) protocols.
- */
-async function validateRemoteUrl(raw: string): Promise<void> {
-  const parsed = new URL(raw);
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error(
-      `[feishu-media] Unsupported protocol "${parsed.protocol}" in URL "${raw}". ` +
-        `Only http:// and https:// are allowed for remote media.`,
-    );
-  }
-
-  const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
-
-  if (net.isIP(hostname)) {
-    // URL contains a literal IP address — check it directly.
-    if (isPrivateIP(hostname)) {
-      throw new Error(
-        `[feishu-media] Access to private/reserved IP "${hostname}" is denied (SSRF protection). ` +
-          `URL: "${raw}"`,
-      );
-    }
-  } else {
-    // Resolve the domain and check every address it points to.
-    try {
-      const addresses = await dns.resolve(hostname);
-      for (const addr of addresses) {
-        if (isPrivateIP(addr)) {
-          throw new Error(
-            `[feishu-media] Domain "${hostname}" resolves to private/reserved IP "${addr}" (SSRF protection). ` +
-              `URL: "${raw}"`,
-          );
-        }
-      }
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('SSRF protection')) {
-        throw err;
-      }
-      // DNS failure is logged but not blocking — the subsequent fetch will
-      // produce a clear network error if the host is truly unreachable.
-      log.warn(`[feishu-media] DNS resolution failed for "${hostname}": ${err}`);
-    }
-  }
+export async function fetchRemoteImageBuffer(url: string, cfg: OpenClawConfig): Promise<Buffer> {
+  return fetchMediaBuffer(url, undefined, cfg);
 }
 
 // ---------------------------------------------------------------------------
@@ -1051,11 +982,15 @@ async function validateRemoteUrl(raw: string): Promise<void> {
  * Fetch media bytes from a URL or local file path.
  *
  * Supports:
- * - `http://` and `https://` URLs (fetched via the global `fetch` API)
+ * - `http://` and `https://` URLs (fetched via the host's SSRF guard)
  * - `file://` URLs and bare file system paths (read from disk, gated
  *   by `localRoots` for path-traversal prevention)
  */
-async function fetchMediaBuffer(urlOrPath: string, localRoots?: readonly string[]): Promise<Buffer> {
+async function fetchMediaBuffer(
+  urlOrPath: string,
+  localRoots: readonly string[] | undefined,
+  cfg: OpenClawConfig,
+): Promise<Buffer> {
   const raw = normalizeMediaUrlInput(urlOrPath);
 
   // Local file path (absolute or relative, or file:// URL).
@@ -1080,26 +1015,34 @@ async function fetchMediaBuffer(urlOrPath: string, localRoots?: readonly string[
     return buf;
   }
 
-  // Remote URL — validate against SSRF before fetching.
-  await validateRemoteUrl(raw);
-
   const FETCH_TIMEOUT_MS = 30_000;
   log.info(`fetching remote media: ${raw}`);
 
   // Retry transient server errors (502/503/504) with bounded backoff.
   const arrayBuffer = await withRetry(async () => {
-    const response = await fetch(raw, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
-    if (!response.ok) {
-      // Attach status so withRetry can inspect it.
-      const err: Error & { status?: number } = new Error(
-        `[feishu-media] Failed to fetch media from "${raw}": ` +
-          `HTTP ${response.status} ${response.statusText}. ` +
-          `Verify the URL is accessible and returns a valid media resource.`,
-      );
-      err.status = response.status;
-      throw err;
+    const { response, release } = await fetchWithSsrFGuard({
+      url: raw,
+      timeoutMs: FETCH_TIMEOUT_MS,
+      policy: {
+        // Preserve fake-IP proxy support without allowing other private/special-use ranges.
+        allowRfc2544BenchmarkRange: true,
+        blockedHostnames: cfg.tools?.web?.fetch?.ssrfPolicy?.blockedHostnames,
+      },
+    });
+    try {
+      if (!response.ok) {
+        const err: Error & { status?: number } = new Error(
+          `[feishu-media] Failed to fetch media from "${raw}": ` +
+            `HTTP ${response.status} ${response.statusText}. ` +
+            `Verify the URL is accessible and returns a valid media resource.`,
+        );
+        err.status = response.status;
+        throw err;
+      }
+      return await response.arrayBuffer();
+    } finally {
+      await release();
     }
-    return response.arrayBuffer();
   }, `fetchMedia(${raw})`);
 
   log.debug(`remote media fetched: ${raw}, ${arrayBuffer.byteLength} bytes`);

@@ -15,6 +15,17 @@ async function run(body: unknown) {
   return convertPost(JSON.stringify(body), ctx());
 }
 
+describe('convertPost — link destinations', () => {
+  it.each([
+    ['https://example.com/docs', 'https://example.com/docs'],
+    ['https://example.com/guide(a)\n[fake](https://evil.example', 'https://example.com/guide\\(a\\)%0A[fake]\\(https://evil.example'],
+    ['https://example.com/\\<a> b', 'https://example.com/%5C%3Ca%3E%20b'],
+  ])('preserves one link when converting %s', async (href, escaped) => {
+    const result = await run({ content: [[{ tag: 'a', text: 'Docs', href }]] });
+    expect(result.content).toBe(`[Docs](${escaped})`);
+  });
+});
+
 describe('convertPost — content_v2 selection (M1 Task 1)', () => {
   it('AC-M1-H1: prefers non-empty content_v2 over content', async () => {
     const r = await run({

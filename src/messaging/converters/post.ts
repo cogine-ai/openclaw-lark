@@ -135,7 +135,9 @@ function renderElement(
     }
     case 'a': {
       const text = el.text ?? el.href ?? '';
-      return el.href ? `[${text}](${el.href})` : text;
+      return el.href ? `[${text}](${el.href.replace(/[\\()<>\s]/gu, (character) =>
+        character === '(' || character === ')' ? `\\${character}` : encodeURIComponent(character),
+      )})` : text;
     }
     case 'at': {
       // At-mention in post — use placeholder key if available via context,

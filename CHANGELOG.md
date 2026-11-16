@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026.10.10-cogine.4
+
+- Ship the merged reply-dispatcher settlement fix, releasing host ownership on both normal replies and permission notifications while preserving streaming finalization.
+- Use Core 2026.10.6 guarded media downloads for per-hop URL/DNS validation and the configured hostname deny list, including card images; retain local-root rules and transient HTTP retries.
+- Preserve fake-IP proxy media downloads with Core's RFC 2544 benchmark-range option; other private/special-use address checks and the hostname deny list remain enforced.
+- Escape inbound post link destinations using the upstream Markdown destination rule.
+- Identify Ogg Opus by its identification packet; send Vorbis and mislabeled audio as ordinary files without introducing a transcoder.
+
+## 2026.10.10-cogine.3
+
+- Preserve both parts of Feishu attachment filenames containing a semicolon before OpenClaw applies its normal filename normalization.
+- Describe document comments as app-authenticated, matching the existing tenant credential path.
+
 ## Unreleased
 
 - Settle host reply dispatchers after normal replies and permission notifications, including failed agent runs, so completed replies do not leave Gateway drain waiting. Preserve queued delivery before final card completion.

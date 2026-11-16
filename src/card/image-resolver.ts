@@ -111,7 +111,7 @@ export class ImageResolver {
   private async doUpload(url: string): Promise<string | null> {
     try {
       log.info('uploading image', { url });
-      const buffer = await fetchRemoteImageBuffer(url);
+      const buffer = await fetchRemoteImageBuffer(url, this.cfg);
       const { imageKey } = await uploadImageLark({
         cfg: this.cfg,
         image: buffer,
