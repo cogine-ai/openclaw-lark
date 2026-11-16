@@ -16,8 +16,10 @@ Target: macOS, Node 24.22.1, OpenClaw 2026.10.6. Plugin identity, 39 tool contra
 - Real Vorbis `.ogg` and Opus `.ogg` uploads were read back from Feishu as `file` and `audio`, respectively.
 - Redirect-to-private rejection was exercised against the installed downloader and real Core guard with controlled HTTP responses. Public redirect fixtures returned HTTP 403 and were not counted as proof of this rejection.
 - Bot configuration, credential files and existing Keychain grant were preserved during both package installs.
-- Agent streaming, read-only office tools and post-reply Gateway drain acceptance remain pending an independently configured API provider. No stable npm publication has occurred yet.
-
+- User acceptance confirmed progressive text in the same card and a complete ending. Gateway logs independently show streaming mode closed and the final card update completed.
+- After that real reply, Gateway restarted in 16.689 seconds, with no active-work or write-custody residue. The new process remained on Core 2026.10.6, with Feishu running, 39 registered tools and zero plugin errors.
+- Office tools, owner policy, OAuth and token-storage source are identical to cogine.3; their existing grants were preserved and their regressions passed. This patch requested no additional office permissions.
+- The exact archive above is accepted for stable npm publication under `latest`.
 
 ## Upstream references
 
