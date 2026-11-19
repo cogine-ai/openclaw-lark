@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.10.10-cogine.5
+
+- Fix OAuth auto-continuation on OpenClaw 2026.11.4 by running the authorization poll and its continuation in Core's public plugin background context. Keep the existing Gateway work tracking, cancellation and credential handling.
+
 ## 2026.10.10-cogine.4
 
 - Ship the merged reply-dispatcher settlement fix, releasing host ownership on both normal replies and permission notifications while preserving streaming finalization.

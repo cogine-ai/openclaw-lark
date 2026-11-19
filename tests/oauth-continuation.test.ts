@@ -2,13 +2,14 @@ import { beforeAll, beforeEach, afterAll, afterEach, describe, expect, it, vi } 
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { executeAuthorize, type ExecuteAuthorizeParams } from '../src/tools/oauth';
 import { injectInboundHandler } from '../src/messaging/inbound/handler-registry';
 import { _resetShutdownHooks, drainShutdownHooks } from '../src/core/shutdown-hooks';
 import { enqueueFeishuChatTask } from '../src/channel/chat-queue';
 import { assertOwnerAccessStrict, OwnerAccessDeniedError } from '../src/core/owner-policy';
+import { setLarkRuntime } from '../src/core/runtime-store';
 
 const doubles = vi.hoisted(() => ({
   poll: vi.fn(),
@@ -45,8 +46,10 @@ vi.mock('../src/card/cardkit', () => ({
   updateCardKitCardForAuth: doubles.cardUpdate,
 }));
 
-type Prepared = { capture(): Map<unknown, unknown>; dispose(): void };
+type Prepared = { capture(): Map<unknown, unknown>; dispose?(): void };
 let prepareMaintenance: (runs: Map<unknown, unknown>) => Promise<Prepared>;
+let coreDist: string;
+let coreVersion: string;
 let AsyncWorkScope: new () => {
   track<T>(run: () => Promise<T>): Promise<T>;
   drain(): Promise<void>;
@@ -57,13 +60,15 @@ const previousStateDir = process.env.OPENCLAW_STATE_DIR;
 
 beforeAll(async () => {
   process.env.OPENCLAW_STATE_DIR = stateDir;
-  // Test only: pin the real 10.6 session-maintenance boundary that threw AbortError.
+  // Test only: pin the real session-maintenance boundary that threw AbortError.
   // Production code imports only public SDK APIs, never this internal file.
   const require = createRequire(import.meta.url);
-  const dist = dirname(dirname(require.resolve('openclaw/plugin-sdk/core')));
-  const core = await import(pathToFileURL(join(dist, 'subagent-registry-state-UGqCV-FA.mjs')).href);
-  prepareMaintenance = core.d;
-  const scope = await import(pathToFileURL(join(dist, 'async-work-scope-DDiH0P7W.mjs')).href);
+  coreDist = dirname(dirname(require.resolve('openclaw/plugin-sdk/core')));
+  coreVersion = JSON.parse(readFileSync(join(coreDist, '../package.json'), 'utf8')).version;
+  const v114 = coreVersion === '2026.11.4';
+  const core = await import(pathToFileURL(join(coreDist, v114 ? 'subagent-registry-state-B18hu04f.mjs' : 'subagent-registry-state-UGqCV-FA.mjs')).href);
+  prepareMaintenance = v114 ? core.p : core.d;
+  const scope = await import(pathToFileURL(join(coreDist, v114 ? 'async-work-scope-BH2yUdBz.mjs' : 'async-work-scope-DDiH0P7W.mjs')).href);
   AsyncWorkScope = scope.t;
 });
 afterAll(() => {
@@ -111,7 +116,7 @@ async function runAuthorization(kind: 'success' | 'expired' | 'identity-mismatch
     try {
       snapshot.capture();
     } finally {
-      snapshot.dispose();
+      snapshot.dispose?.();
     }
   });
   const completed = vi.fn();
@@ -192,6 +197,44 @@ describe('OAuth continuation after the initiating tool scope closes', () => {
   });
 
   it('resumes through the real synthetic queue and 10.6 maintenance reader', () => runAuthorization('success'));
+  it('resumes under the real host instance after the initiating invocation closes', async () => {
+    const v114 = coreVersion === '2026.11.4';
+    const { n: PluginInstance } = await import(pathToFileURL(join(coreDist, v114 ? 'plugin-setup-module-BwpxP6l2.mjs' : 'plugin-setup-module-BtgPcZxn.mjs')).href);
+    const { r: PluginInvocationScope } = await import(pathToFileURL(join(coreDist, v114 ? 'registry-inspection-resources-BKepPDbH.mjs' : 'registry-inspection-resources-BbQgtahf.mjs')).href);
+    const instance = new PluginInstance('openclaw-lark');
+    const scope = new PluginInvocationScope({}, [instance]);
+    const outcome = deferred<unknown>();
+    const poll = deferred<unknown>();
+    doubles.poll.mockReturnValue(poll.promise);
+    vi.stubGlobal('fetch', vi.fn(async () => ({ json: async () => ({ code: 0, data: { open_id: 'fixture-user' } }) })));
+    setLarkRuntime({} as never, instance.lifecycle.runInBackgroundContext);
+    injectInboundHandler(async () => {
+      try {
+        outcome.resolve(await instance.run(async () => {
+          const snapshot = await prepareMaintenance(new Map());
+          try {
+            snapshot.capture();
+            return 'resumed';
+          } finally {
+            snapshot.dispose?.();
+          }
+        }));
+      } catch (error) {
+        outcome.resolve(String(error));
+      }
+    });
+    try {
+      await scope.run(() => executeAuthorize(authorizationParams('fixture-closed-invocation')));
+      scope.release();
+      poll.resolve(successfulPoll());
+      expect(await outcome.promise).toBe('resumed');
+    } finally {
+      scope.release();
+      await drainShutdownHooks({ deadlineMs: 1000 });
+      setLarkRuntime({} as never);
+      await instance.dispose();
+    }
+  });
   it('does not resume or save an expired authorization', () => runAuthorization('expired'));
   it('does not resume or save a different user’s token', () => runAuthorization('identity-mismatch'));
   it('cancels polling and suppresses continuation on shutdown', () => runAuthorization('shutdown'));
@@ -267,7 +310,7 @@ function installBoundaryHarness() {
     try {
       snapshot.capture();
     } finally {
-      snapshot.dispose();
+      snapshot.dispose?.();
     }
     completed(params);
   });

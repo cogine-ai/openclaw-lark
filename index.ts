@@ -11,7 +11,7 @@
 import type { OpenClawPluginApi } from 'openclaw/plugin-sdk/core';
 import { emptyPluginConfigSchema } from 'openclaw/plugin-sdk/core';
 import { feishuPlugin } from './src/channel/plugin';
-import { LarkClient } from './src/core/lark-client';
+import { setLarkRuntime } from './src/core/runtime-store';
 import { registerOapiTools } from './src/tools/oapi/index';
 import { registerFeishuMcpDocTools } from './src/tools/mcp/doc/index';
 import { registerFeishuOAuthTool } from './src/tools/oauth';
@@ -107,7 +107,7 @@ const plugin = {
   description: 'Lark/Feishu channel plugin with im/doc/wiki/drive/task/calendar tools',
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi): void {
-    LarkClient.setRuntime(api.runtime);
+    setLarkRuntime(api.runtime, api.lifecycle?.runInBackgroundContext);
     api.registerChannel({ plugin: feishuPlugin });
 
     // ========================================

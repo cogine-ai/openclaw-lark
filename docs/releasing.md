@@ -2,7 +2,7 @@
 
 Package: `@cogineai/openclaw-lark`. The cogineai scope is the npm namespace; the GitHub owner remains cogine-ai. Public access is not restricted to organization members. `publishConfig.access=public` makes the package installable by everyone. GitHub repository ownership and npm scope permissions are separate: a publisher must have npm access to the cogineai scope.
 
-Current stable version: `2026.10.10-cogine.4`, available through the default `latest` tag. The initial cogine.1 release was published through `next` and then designated stable after the single-Mac acceptance. Each package archive remains immutable; this patch has its own verification record.
+Check [the npm registry](https://registry.npmjs.org/@cogineai%2Fopenclaw-lark/latest) for the current stable version. The initial cogine.1 release was published through `next` and then designated stable after the single-Mac acceptance. Each package archive remains immutable.
 
 ## Validate a release
 
@@ -25,17 +25,17 @@ pnpm check:pack
 pnpm audit --prod --audit-level high
 # Build and publish the same inspected tarball; path depends on package version.
 pnpm pack
-npm publish ./cogineai-openclaw-lark-2026.10.10-cogine.4.tgz --access public --tag latest
+npm publish ./cogineai-openclaw-lark-2026.10.10-cogine.5.tgz --access public --tag latest
 ```
 
-This publishes the inspected cogine.4 archive directly as stable. Do not republish an existing version. Use a new version and matching artifact path for a future release, choosing `--tag latest` for a stable release or `--tag next` for a preview. Publishing is an explicit release action; preparing this repository does not execute it. Verify the registry version and test installation after publishing.
+This publishes the inspected cogine.5 archive directly as stable. Do not republish an existing version. Use a new version and matching artifact path for a future release, choosing `--tag latest` for a stable release or `--tag next` for a preview. Publishing is an explicit release action; preparing this repository does not execute it. Verify the registry version and test installation after publishing.
 
 ## Promote an existing package to stable
 
 Point `latest` at the exact version that passed acceptance; do not rebuild or republish the package:
 
 ```sh
-npm dist-tag add @cogineai/openclaw-lark@2026.10.10-cogine.4 latest
+npm dist-tag add @cogineai/openclaw-lark@2026.10.10-cogine.5 latest
 npm view @cogineai/openclaw-lark dist-tags --json
 ```
 
