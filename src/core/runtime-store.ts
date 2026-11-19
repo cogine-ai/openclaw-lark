@@ -8,16 +8,25 @@
  * importing LarkClient directly, which would otherwise create static cycles.
  */
 
-import type { PluginRuntime } from 'openclaw/plugin-sdk/core';
+import type { OpenClawPluginApi, PluginRuntime } from 'openclaw/plugin-sdk/core';
 
 const RUNTIME_NOT_INITIALIZED_ERROR =
   'Feishu plugin runtime has not been initialised. ' +
   'Ensure LarkClient.setRuntime() is called during plugin activation.';
 
 let runtime: PluginRuntime | null = null;
+let runInBackgroundContext: OpenClawPluginApi['lifecycle']['runInBackgroundContext'];
 
-export function setLarkRuntime(nextRuntime: PluginRuntime): void {
+export function setLarkRuntime(
+  nextRuntime: PluginRuntime,
+  backgroundRunner?: typeof runInBackgroundContext,
+): void {
   runtime = nextRuntime;
+  runInBackgroundContext = backgroundRunner;
+}
+
+export function runLarkBackgroundWork<T>(run: () => T): T {
+  return runInBackgroundContext ? runInBackgroundContext(run) : run();
 }
 
 export function tryGetLarkRuntime(): PluginRuntime | null {

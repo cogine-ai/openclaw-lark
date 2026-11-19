@@ -25,6 +25,7 @@ import type { ConfiguredLarkAccount } from '../core/types';
 import { getLarkAccount } from '../core/accounts';
 import { OwnerAccessDeniedError, assertOwnerAccessStrict } from '../core/owner-policy';
 import { LarkClient } from '../core/lark-client';
+import { runLarkBackgroundWork } from '../core/runtime-store';
 import { getAppGrantedScopes } from '../core/app-scope-checker';
 import type { LarkTicket } from '../core/lark-ticket';
 import { getTicket } from '../core/lark-ticket';
@@ -574,15 +575,12 @@ export async function executeAuthorize(
     deletePendingFlow();
     if (activeFlows.get(flowKey) === currentFlow) activeFlows.delete(flowKey);
   };
-  // Reserve independent Gateway work before the tool returns. OAuth may finish
-  // after its initiating tool scope has closed; inheriting that scope aborts
-  // session maintenance when the synthetic continuation enters on OpenClaw 10.6.
   const disposeAuthorizationShutdown = registerShutdownHook(`oauth:${flowKey}:${randomUUID()}`, async () => {
     currentFlow.superseded = true;
     abortController.abort();
     await backgroundAuthorization;
   });
-  const backgroundAuthorization: Promise<void> = runDetachedWebhookWork(() =>
+  const pollAndContinue = () =>
     pollDeviceToken({
       appId,
       appSecret,
@@ -703,8 +701,7 @@ export async function executeAuthorize(
                 log.info('authorization continuation skipped after cancellation');
                 return;
               }
-              log.info(`synthetic message queued (${status})`);
-              log.info('synthetic message dispatched after successful auth');
+              log.info(`authorization continuation left the chat queue (${status})`);
             } catch (e) {
               log.warn(`failed to send synthetic message after auth: ${e}`);
             }
@@ -728,8 +725,11 @@ export async function executeAuthorize(
       .catch((err) => {
         log.error(`polling error: ${err}`);
       })
-      .finally(cleanupFlow),
-  )
+      .finally(cleanupFlow);
+
+  // Reserve Gateway work before the tool returns, then let Core bind the poll
+  // and its continuation to the live plugin instance, outside the tool invocation.
+  const backgroundAuthorization: Promise<void> = runDetachedWebhookWork(() => runLarkBackgroundWork(pollAndContinue))
     .catch((err) => {
       cleanupFlow();
       log.error(`authorization background work failed: ${err}`);
