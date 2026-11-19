@@ -13,7 +13,7 @@ Check [the npm registry](https://registry.npmjs.org/@cogineai%2Fopenclaw-lark/la
 
 ## Publish a new version
 
-An npm publisher with permission for the `cogineai` namespace must authenticate locally (`npm login`, with the required 2FA). Do not put credentials in the repository or send them in chat.
+Check out the reviewed release tag. An npm publisher with permission for the `cogineai` namespace must authenticate locally (`npm login`, with the required 2FA). Do not put credentials in the repository or send them in chat.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -23,12 +23,16 @@ pnpm test
 pnpm build
 pnpm check:pack
 pnpm audit --prod --audit-level high
-# Build and publish the same inspected tarball; path depends on package version.
 pnpm pack
+```
+
+Use the accepted pilot tarball if it is already the release artifact. When the release tarball is built after merging, compare the contents of both archives. The runtime files, plugin manifest, skills and package metadata must match except for the release version and documentation. If any runtime content differs, run the pilot again against the release tarball. Publish the exact archive that passed this check.
+
+```sh
 npm publish ./cogineai-openclaw-lark-2026.10.10-cogine.5.tgz --access public --tag latest
 ```
 
-This publishes the inspected cogine.5 archive directly as stable. Do not republish an existing version. Use a new version and matching artifact path for a future release, choosing `--tag latest` for a stable release or `--tag next` for a preview. Publishing is an explicit release action; preparing this repository does not execute it. Verify the registry version and test installation after publishing.
+The command publishes cogine.5 directly as stable. Do not republish an existing version. Use a new version and matching artifact path for a future release, choosing `--tag latest` for a stable release or `--tag next` for a preview. Verify the registry version and test installation after publishing.
 
 ## Promote an existing package to stable
 
