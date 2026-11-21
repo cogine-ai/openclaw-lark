@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.10.10-cogine.6
+
+- Render typed callback buttons in Feishu message sends. Route clicks to the original conversation with the clicker's identity and deliver the callback value as data.
+
 ## 2026.10.10-cogine.5
 
 - Fix OAuth auto-continuation on OpenClaw 2026.11.4 by running the authorization poll and its continuation in Core's public plugin background context. Keep the existing Gateway work tracking, cancellation and credential handling.

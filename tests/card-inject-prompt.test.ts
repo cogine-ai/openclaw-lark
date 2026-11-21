@@ -34,6 +34,12 @@ vi.mock('../src/channel/interactive-dispatch', () => ({
   dispatchFeishuPluginInteractiveHandler: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../src/messaging/outbound/deliver', () => ({
+  sendCardLark: vi.fn().mockResolvedValue({ messageId: 'om_card', chatId: 'oc_group' }),
+  sendMediaLark: vi.fn().mockResolvedValue({ messageId: 'om_file', chatId: 'oc_group' }),
+  sendTextLark: vi.fn().mockResolvedValue({ messageId: 'om_text', chatId: 'oc_group' }),
+}));
+
 import { handleCardActionEvent } from '../src/channel/event-handlers';
 import { dispatchSyntheticTextMessage } from '../src/messaging/inbound/synthetic-message';
 import { dispatchFeishuPluginInteractiveHandler } from '../src/channel/interactive-dispatch';
@@ -41,6 +47,9 @@ import { getChatInfo } from '../src/core/chat-info-cache';
 import { getMessageFeishu } from '../src/messaging/shared/message-lookup';
 import { checkMessageGate } from '../src/messaging/inbound/gate';
 import { setLarkRuntime } from '../src/core/runtime-store';
+import { feishuMessageActions } from '../src/messaging/outbound/actions';
+import { feishuOutbound } from '../src/messaging/outbound/outbound';
+import { sendCardLark, sendMediaLark, sendTextLark } from '../src/messaging/outbound/deliver';
 
 function makeCtx() {
   return {
@@ -59,6 +68,103 @@ const flush = async () => {
 afterEach(() => {
   vi.clearAllMocks();
   vi.mocked(getMessageFeishu).mockResolvedValue(null);
+});
+
+it.each(['/pick a', '::pick:a'])(
+  'delivers message.send callback %s once as data in the original thread',
+  async (value) => {
+    vi.mocked(getChatInfo).mockResolvedValue({ chatMode: 'topic' } as any);
+    vi.mocked(getMessageFeishu).mockResolvedValue({ threadId: 'omt_thread_1' } as any);
+
+    const cfg = {};
+    const to = 'oc_group';
+    const route = { cfg, to, accountId: 'account-a', replyToId: 'om_parent', threadId: 'omt_thread_1' };
+    const payload = {
+      text: '请选择',
+      mediaUrl: 'https://example.com/sample.png',
+      presentation: {
+        blocks: [
+          {
+            type: 'buttons' as const,
+            buttons: [
+              { label: '选择 A', action: { type: 'callback' as const, value } },
+              { label: '选择 B', action: { type: 'callback' as const, value: 'pick:b' }, disabled: true },
+            ],
+          },
+        ],
+      },
+    };
+    const prepared = await feishuMessageActions.prepareSendPayload?.({
+      ctx: { channel: 'feishu', action: 'send', cfg, params: { to } },
+      to,
+      payload,
+    });
+    await feishuOutbound.sendPayload!({ ...route, text: payload.text, payload: prepared ?? payload });
+
+    expect(sendTextLark).toHaveBeenCalledOnce();
+    expect(sendTextLark).toHaveBeenCalledWith(expect.objectContaining({ text: '请选择' }));
+    expect(sendMediaLark).toHaveBeenCalledOnce();
+    expect(sendCardLark).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        accountId: 'account-a',
+        replyToMessageId: 'om_parent',
+        replyInThread: true,
+        card: expect.objectContaining({ schema: '2.0' }),
+      }),
+    );
+    const card = vi.mocked(sendCardLark).mock.calls[0][0].card;
+    const { elements } = card.body as {
+      elements: Array<{ tag: string; behaviors?: Array<{ type: string; value: Record<string, unknown> }> }>;
+    };
+    const buttons = elements.filter((element) => element.tag === 'button');
+    expect(buttons).toHaveLength(1);
+    const [behavior] = buttons[0].behaviors ?? [];
+    expect(behavior.type).toBe('callback');
+    expect(JSON.stringify(elements)).toContain('选择 B');
+
+    const receipt = await handleCardActionEvent(makeCtx(), {
+      operator: { open_id: 'ou_clicker' },
+      context: { open_chat_id: to, open_message_id: 'om_card' },
+      event_id: 'evt_click',
+      action: { value: behavior.value },
+    });
+    expect(receipt).toEqual({ toast: { type: 'info', content: '收到，正在为你处理…' } });
+    await flush();
+
+    expect(dispatchSyntheticTextMessage).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        senderOpenId: 'ou_clicker',
+        text: `callback_data: ${value}`,
+        chatId: to,
+        chatType: 'group',
+        threadId: 'omt_thread_1',
+        replyToMessageId: 'om_card',
+        cardActionGate: true,
+      }),
+    );
+  },
+);
+
+it('leaves regular reply payloads and explicit native cards on their existing paths', async () => {
+  const cfg = {};
+  const to = 'oc_group';
+  const text = '选择操作';
+  const presentation = {
+    blocks: [
+      { type: 'buttons' as const, buttons: [{ label: 'Run', action: { type: 'callback' as const, value: 'x' } }] },
+    ],
+  };
+
+  await feishuOutbound.sendPayload!({ cfg, to, text, payload: { text, presentation } });
+  expect(sendCardLark).not.toHaveBeenCalled();
+
+  const payload = { text, presentation, channelData: { feishu: { card: { elements: [] } } } };
+  const prepared = await feishuMessageActions.prepareSendPayload?.({
+    ctx: { channel: 'feishu', action: 'send', cfg, params: { to } },
+    to,
+    payload,
+  });
+  expect(prepared).toBe(payload);
 });
 
 describe('handleCardActionEvent — inject_prompt (handler boundary)', () => {

@@ -6,7 +6,7 @@
 
 - GitHub：<https://github.com/cogine-ai/openclaw-lark>
 - npm 包名：`@cogineai/openclaw-lark`
-- 发布版本：`2026.10.10-cogine.5`，当前稳定版见 [npm `latest`](https://registry.npmjs.org/@cogineai%2Fopenclaw-lark/latest)
+- 发布版本：`2026.10.10-cogine.6`，当前稳定版见 [npm `latest`](https://registry.npmjs.org/@cogineai%2Fopenclaw-lark/latest)
 - 验证环境为 Node.js `24.22.1`。OpenClaw `2026.10.6` 通过自动测试，`2026.11.4` 在 macOS 上通过飞书 OAuth 自动续跑试点验收。
 
 ## 本分支的改动
@@ -15,6 +15,7 @@
 2. OAuth 轮询和续跑使用核心公开 SDK 跟踪 Gateway 后台工作，服务关闭时取消并回收轮询。Core 11.4 上还使用公开的插件后台上下文，使授权续跑可以在原工具调用结束后执行。
 3. 更新包名、版本识别、构建与公开发布流程。保留插件 ID `openclaw-lark`、渠道 `feishu` 和配置路径，迁移时不需要另建机器人。
 4. 移除社区版过宽的命令提前拒收，避免图片下载后的本地路径被当作系统命令；保留聊天准入、核心命令授权和 OAuth Owner 校验。
+5. 支持 `message.send` 的飞书回调按钮。WebSocket 模式下需在飞书开放平台为应用订阅「卡片回传交互」`card.action.trigger`，选择「使用长连接接收回调」并发布应用版本。已在 macOS + OpenClaw 2026.11.5 上验证点击只触发一次，回复送回原私聊。
 
 继承消息收发、流式卡片、OAuth、文档、日历、任务、云盘、知识库、表格等工具。工具的可用性仍取决于应用权限和用户授权；并非所有办公操作都完成了真实环境验收。
 
@@ -36,10 +37,10 @@ pnpm install --frozen-lockfile
 pnpm build
 pnpm pack
 # 使用生成的 .tgz 的绝对路径
-openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.10.10-cogine.5.tgz
+openclaw plugins install npm-pack:/absolute/path/to/cogineai-openclaw-lark-2026.10.10-cogine.6.tgz
 ```
 
-默认安装命令使用 `latest`；需要固定版本时可使用 `@cogineai/openclaw-lark@2026.10.10-cogine.5`。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
+默认安装命令使用 `latest`；需要固定版本时可使用 `@cogineai/openclaw-lark@2026.10.10-cogine.6`。不要把 `pnpm install` / `npm install` 到普通项目目录等同于安装到 OpenClaw；插件由 OpenClaw 插件管理器加载。
 
 ### 从其他 Lark 包迁移
 
