@@ -19,6 +19,11 @@ import type {
   ChannelMessageToolSchemaContribution,
   ChannelThreadingToolContext,
 } from 'openclaw/plugin-sdk/channel-contract';
+import {
+  type MessagePresentationBlock,
+  normalizeMessagePresentation,
+  renderMessagePresentationFallbackText,
+} from 'openclaw/plugin-sdk/interactive-runtime';
 import { extractToolSend } from 'openclaw/plugin-sdk/tool-send';
 import { readStringParam } from 'openclaw/plugin-sdk/param-readers';
 import { Type } from '@sinclair/typebox';
@@ -26,10 +31,12 @@ import { jsonResult, readReactionParams } from '../../core/sdk-compat';
 
 import { LarkClient } from '../../core/lark-client';
 import { getEnabledLarkAccounts } from '../../core/accounts';
+import { isCommentTarget } from '../../core/comment-target';
 import { larkLogger } from '../../core/lark-logger';
 import { addReactionFeishu, listReactionsFeishu, removeReactionFeishu } from './reactions';
 import { sendCardLark, sendTextLark } from './deliver';
 import { uploadAndSendMediaLark } from './media';
+import type { FeishuChannelData } from './outbound';
 
 const log = larkLogger('outbound/actions');
 
@@ -177,6 +184,51 @@ function readFeishuSendParams(
   };
 }
 
+function buildMessageActionCallbackCard(presentation: NonNullable<ReturnType<typeof normalizeMessagePresentation>>) {
+  const elements: Record<string, unknown>[] = [];
+  const addFallback = (block: MessagePresentationBlock) => {
+    const content = renderMessagePresentationFallbackText({ presentation: { blocks: [block] } });
+    if (content) elements.push({ tag: 'markdown', content });
+  };
+
+  let hasCallback = false;
+  for (const block of presentation.blocks) {
+    if (block.type === 'divider') {
+      elements.push({ tag: 'hr' });
+    } else if (block.type === 'buttons') {
+      for (const button of block.buttons) {
+        if (button.disabled || button.action?.type !== 'callback') {
+          addFallback({ type: 'buttons', buttons: [button] });
+          continue;
+        }
+
+        hasCallback = true;
+        elements.push({
+          tag: 'button',
+          text: { tag: 'plain_text', content: button.label },
+          type: button.style === 'primary' || button.style === 'danger' ? button.style : 'default',
+          behaviors: [
+            {
+              type: 'callback',
+              value: { action: 'inject_prompt', prompt: `callback_data: ${button.action.value}` },
+            },
+          ],
+        });
+      }
+    } else {
+      addFallback(block);
+    }
+  }
+  if (!hasCallback) return undefined;
+
+  return {
+    schema: '2.0',
+    config: { wide_screen_mode: true },
+    ...(presentation.title && { header: { title: { tag: 'plain_text', content: presentation.title } } }),
+    body: { elements },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Adapter
 // ---------------------------------------------------------------------------
@@ -197,6 +249,26 @@ export const feishuMessageActions: ChannelMessageActionAdapter = {
   supportsAction: ({ action }) => SUPPORTED_ACTIONS.has(action),
 
   extractToolSend: ({ args }) => extractToolSend(args, 'sendMessage'),
+
+  prepareSendPayload: ({ to, payload }) => {
+    const presentation = normalizeMessagePresentation(payload.presentation);
+    if (!presentation) return null;
+
+    const feishu = payload.channelData?.feishu as FeishuChannelData | undefined;
+    if (feishu?.card || isCommentTarget(to)) return payload;
+
+    // This hook runs for message.send, where callbacks belong to the agent.
+    // Older Core versions don't stamp agent controls. Encode them here so normal
+    // reply payloads and plugin-owned card callbacks keep their existing paths.
+    const card = buildMessageActionCallbackCard(presentation);
+    if (!card) return payload;
+
+    return {
+      ...payload,
+      presentation: undefined,
+      channelData: { ...payload.channelData, feishu: { ...feishu, card } },
+    };
+  },
 
   handleAction: async (ctx) => {
     const { action, params, cfg, accountId, toolContext } = ctx;
